@@ -15,6 +15,12 @@ func contactHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "<h1>Contact</h1><a href=\"bob@example.com\">bob@example.com</a>")
 }
 
+func pageNotFoundHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	w.WriteHeader(http.StatusNotFound)
+	fmt.Fprint(w, "<h1>We could not find the page you were looking for :(</h1><a href=\"/\">Home</a>")
+}
+
 // Prints out the route's path in the browser
 func pathHandler (w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
@@ -23,7 +29,7 @@ func pathHandler (w http.ResponseWriter, r *http.Request) {
 	case "/contact":
 		contactHandler(w, r)
 	default:
-		http.NotFound(w, r)
+		pageNotFoundHandler(w, r)
 	}
 }
 
