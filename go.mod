@@ -1,4 +1,4 @@
-module github.com/jgsheppa/go_web_dev
+module github.com/jgsheppa/golang_website
 
 go 1.17
 
@@ -10,6 +10,7 @@ require (
 	github.com/cortesi/moddwatch v0.0.0-20210222043437-a6aaad86a36e // indirect
 	github.com/cortesi/termlog v0.0.0-20210222042314-a1eec763abec // indirect
 	github.com/fatih/color v1.10.0 // indirect
+	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/rjeczalik/notify v0.0.0-20181126183243-629144ba06a1 // indirect
