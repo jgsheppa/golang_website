@@ -11,6 +11,7 @@ import (
 var (
 	homeView *views.View
 	contactView *views.View
+	registerView *views.View
 )
 
 func home(w http.ResponseWriter, r *http.Request) {
@@ -34,14 +35,20 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "<h1>We couldn't find that page!</h1><a href=\"/\">Home</a>")
 }
 
+func register(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	must(registerView.Render(w, nil))
+}
+
 func main() {
 	homeView = views.NewView("bootstrap", "views/home.gohtml")
 	contactView = views.NewView("bootstrap", "views/contact.gohtml")
+	registerView = views.NewView("bootstrap", "views/register.gohtml")
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", home)
 	r.HandleFunc("/contact", contact)
-	// r.HandleFunc("/faq", faq)
+	r.HandleFunc("/register", register)
 
 	// HandlerFunc converts notFound to the correct type
 	r.NotFoundHandler = http.HandlerFunc(notFound)
