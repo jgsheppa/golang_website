@@ -6,12 +6,12 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jgsheppa/golang_website/views"
+	"github.com/jgsheppa/golang_website/controllers"
 )
 
 var (
 	homeView *views.View
 	contactView *views.View
-	registerView *views.View
 )
 
 func home(w http.ResponseWriter, r *http.Request) {
@@ -24,31 +24,21 @@ func contact(w http.ResponseWriter, r *http.Request) {
 	must(contactView.Render(w, nil))
 }
 
-// func faq(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "text/html")
-// 	must(faqView.Render(w, nil))
-// }
-
 func notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(http.StatusNotFound)
 	fmt.Fprint(w, "<h1>We couldn't find that page!</h1><a href=\"/\">Home</a>")
 }
 
-func register(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	must(registerView.Render(w, nil))
-}
-
 func main() {
 	homeView = views.NewView("bootstrap", "views/home.gohtml")
 	contactView = views.NewView("bootstrap", "views/contact.gohtml")
-	registerView = views.NewView("bootstrap", "views/register.gohtml")
+	userController := controllers.NewUser()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", home)
 	r.HandleFunc("/contact", contact)
-	r.HandleFunc("/register", register)
+	r.HandleFunc("/register", userController.New)
 
 	// HandlerFunc converts notFound to the correct type
 	r.NotFoundHandler = http.HandlerFunc(notFound)
