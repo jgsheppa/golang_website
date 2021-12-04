@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/jgsheppa/golang_website/views"
 	"github.com/jgsheppa/golang_website/controllers"
+	"github.com/jgsheppa/golang_website/views"
 )
 
 var (
@@ -36,9 +36,10 @@ func main() {
 	userController := controllers.NewUser()
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", home)
-	r.HandleFunc("/contact", contact)
-	r.HandleFunc("/register", userController.New)
+	r.HandleFunc("/", home).Methods("GET")
+	r.HandleFunc("/contact", contact).Methods("GET")
+	r.HandleFunc("/register", userController.New).Methods("GET")
+	r.HandleFunc("/register", userController.Create).Methods("POST")
 
 	// HandlerFunc converts notFound to the correct type
 	r.NotFoundHandler = http.HandlerFunc(notFound)
