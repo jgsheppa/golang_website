@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/schema"
 	"github.com/jgsheppa/golang_website/views"
 )
 
@@ -29,9 +30,26 @@ func (u *User) New(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type RegistrationForm struct {
+	Email string `schema:"email"`
+	Password string `schema:"password"`
+}
+
 // Create is used to process the registration form
 //
 // POST /register
+var decoder = schema.NewDecoder()
+
 func (u *User) Create(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "This is a temporary response")
+	if err := r.ParseForm(); err != nil {
+		panic(err)
+	}
+
+	var form RegistrationForm
+	
+	if err := decoder.Decode(&form, r.PostForm); err != nil {
+		panic(err)
+	}
+
+	fmt.Fprintln(w, form)
 }
