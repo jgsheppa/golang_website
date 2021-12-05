@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/schema"
 	"github.com/jgsheppa/golang_website/views"
 )
 
@@ -38,16 +37,12 @@ type RegistrationForm struct {
 // Create is used to process the registration form
 //
 // POST /register
-var decoder = schema.NewDecoder()
+
 
 func (u *User) Create(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		panic(err)
-	}
-
 	var form RegistrationForm
-	
-	if err := decoder.Decode(&form, r.PostForm); err != nil {
+
+	if err := parseForm(r, &form); err != nil {
 		panic(err)
 	}
 
