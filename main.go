@@ -6,23 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jgsheppa/golang_website/controllers"
-	"github.com/jgsheppa/golang_website/views"
 )
-
-var (
-	homeView *views.View
-	contactView *views.View
-)
-
-func home(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	must(homeView.Render(w, nil))
-}
-
-func contact(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	must(contactView.Render(w, nil))
-}
 
 func notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
@@ -31,13 +15,12 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	homeView = views.NewView("bootstrap", "views/home.gohtml")
-	contactView = views.NewView("bootstrap", "views/contact.gohtml")
+	staticController := controllers.NewStatic()
 	userController := controllers.NewUser()
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", home).Methods("GET")
-	r.HandleFunc("/contact", contact).Methods("GET")
+	r.Handle("/", staticController.Home).Methods("GET")
+	r.Handle("/contact", staticController.Contact).Methods("GET")
 	r.HandleFunc("/register", userController.New).Methods("GET")
 	r.HandleFunc("/register", userController.Create).Methods("POST")
 
