@@ -12,7 +12,7 @@ import (
 // are parsed incorrectly
 func NewUser() *User {
 	return &User{
-		NewView: views.NewView("bootstrap", "views/users/new.gohtml"),
+		NewView: views.NewView("bootstrap", "users/new"),
 	}
 }
 
