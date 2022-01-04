@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jgsheppa/golang_website/controllers"
+	"github.com/jgsheppa/golang_website/models"
 )
 
 func notFound(w http.ResponseWriter, r *http.Request) {
@@ -14,9 +15,28 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "<h1>We couldn't find that page!</h1><a href=\"/\">Home</a>")
 }
 
+
+const (
+	host = "localhost"
+	port = 5432
+	user = "jamessheppard"
+	dbname = "golang"
+)
+
 func main() {
+
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable", 
+	host, port, user, dbname)
+	us, err := models.NewUserService(psqlInfo)
+	if err != nil {
+	panic(err)
+	}
+	must(err)
+
+	us.AutoMigrate()
+
 	staticController := controllers.NewStatic()
-	userController := controllers.NewUser()
+	userController := controllers.NewUser(us)
 
 	r := mux.NewRouter()
 	r.Handle("/", staticController.Home).Methods("GET")

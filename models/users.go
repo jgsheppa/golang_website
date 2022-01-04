@@ -2,10 +2,14 @@ package models
 
 import (
 	"errors"
+	"log"
+	"os"
+	"time"
 
 	"gorm.io/driver/postgres"
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var (
@@ -14,7 +18,17 @@ var (
 )
 
 func NewUserService(connectionInfo string) (*UserService, error) {
-	db, err := gorm.Open(postgres.Open(connectionInfo), &gorm.Config{})
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+				SlowThreshold:              time.Second,   // Slow SQL threshold
+				LogLevel:                   logger.Info, // Log level
+				IgnoreRecordNotFoundError: true,           // Ignore ErrRecordNotFound error for logger
+				Colorful:                  true,          // Disable color
+			},
+		)
+
+	db, err := gorm.Open(postgres.Open(connectionInfo), &gorm.Config{Logger: newLogger})
 	if err != nil {
 		panic(err)
 	}
@@ -74,13 +88,22 @@ func first(db *gorm.DB, dst interface{}) error {
 	return err
 }
 
-func (us *UserService) DestructiveReset() {
-	us.db.Migrator().DropTable(&User{})
-	us.db.AutoMigrate(&User{})
+func (us *UserService) DestructiveReset() error {
+	if err := us.db.Migrator().DropTable(&User{}).Error; err != nil {
+		return us.db.Error
+	}
+	return us.db.AutoMigrate()
+}
+
+func (us *UserService) AutoMigrate() error {
+	if err := us.db.AutoMigrate(&User{}).Error; err != nil {
+		return us.db.Error
+	}
+	return nil
 }
 
 type User struct {
 	gorm.Model
 	Name string
-	Email string `gorm:"not null;unique_index`
+	Email string `gorm:"unique"`
 }

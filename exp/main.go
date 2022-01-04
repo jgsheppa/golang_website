@@ -24,19 +24,19 @@ type User struct {
 
 func main () {
 
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable", 
-	host, port, user, dbname)
-
+	
 	// newLogger := logger.New(
-	// 	log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-	// 	logger.Config{
-	// 		SlowThreshold:              time.Second,   // Slow SQL threshold
-	// 		LogLevel:                   logger.Info, // Log level
-	// 		IgnoreRecordNotFoundError: true,           // Ignore ErrRecordNotFound error for logger
-	// 		Colorful:                  true,          // Disable color
-	// 	},
-	// )
-
+	// 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+	// 		logger.Config{
+	// 				SlowThreshold:              time.Second,   // Slow SQL threshold
+	// 				LogLevel:                   logger.Info, // Log level
+	// 				IgnoreRecordNotFoundError: true,           // Ignore ErrRecordNotFound error for logger
+	// 				Colorful:                  true,          // Disable color
+	// 			},
+	// 		)
+			
+			psqlInfo := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable", 
+			host, port, user, dbname)
 	us, err := models.NewUserService(psqlInfo)
 	if err != nil {
 		panic(err)
