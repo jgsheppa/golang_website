@@ -14,12 +14,14 @@ import (
 func NewUser(us *models.UserService) *User {
 	return &User{
 		NewView: views.NewView("bootstrap", "users/new"),
+		LoginView: views.NewView("bootstrap", "users/login"),
 		us: us,
 	}
 }
 
 type User struct {
 	NewView *views.View
+	LoginView *views.View
 	us *models.UserService
 }
 
@@ -59,4 +61,19 @@ func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintln(w, user)
+}
+
+
+type LoginForm struct {
+	Email string `schema:"email"`
+	Password string `schema:"password"`
+}
+
+func (u *User) Login(w http.ResponseWriter, r *http.Request) {
+	form := LoginForm{}
+	if err := parseForm(r, &form); err != nil {
+		panic(err)
+	}
+
+	fmt.Fprintln(w, form)
 }

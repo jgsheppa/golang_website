@@ -32,6 +32,7 @@ func main() {
 	panic(err)
 	}
 	must(err)
+	
 // us.DestructiveReset()
 	// us.AutoMigrate()
 
@@ -42,8 +43,10 @@ func main() {
 	r.Handle("/", staticController.Home).Methods("GET")
 	r.Handle("/contact", staticController.Contact).Methods("GET")
 	r.Handle("/about", staticController.About).Methods("GET")
-	r.HandleFunc("/register", userController.New).Methods("GET")
+	r.Handle("/register", userController.NewView).Methods("GET")
 	r.HandleFunc("/register", userController.Create).Methods("POST")
+	r.Handle("/login", userController.LoginView).Methods("GET")
+	r.HandleFunc("/login", userController.Login).Methods("POST")
 
 	// HandlerFunc converts notFound to the correct type
 	r.NotFoundHandler = http.HandlerFunc(notFound)
