@@ -32,8 +32,8 @@ func main() {
 	panic(err)
 	}
 	must(err)
-
-	us.AutoMigrate()
+// us.DestructiveReset()
+	// us.AutoMigrate()
 
 	staticController := controllers.NewStatic()
 	userController := controllers.NewUser(us)

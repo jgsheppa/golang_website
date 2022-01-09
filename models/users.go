@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -16,6 +17,8 @@ var (
 	ErrNotFound = errors.New("models: resource not found")
 	ErrInvalidID = errors.New("models: ID provided was invalid")
 )
+
+const userPwPepper = "?3o!yM$LmRKmQhDD"
 
 func NewUserService(connectionInfo string) (*UserService, error) {
 	newLogger := logger.New(
@@ -55,6 +58,15 @@ func (us *UserService) ByID(id uint) (*User, error) {
 
 // Will create the provided user
 func (us *UserService) Create(user *User) error {
+	pwBytes := []byte(user.Password + userPwPepper)
+	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	// Store hash as a string in the user model
+	user.PasswordHash = string(hashedBytes)
+	// Not required, but this prevents accidental printing of logs
+	user.Password = ""
 	return us.db.Create(user).Error
 }
 
@@ -92,7 +104,7 @@ func (us *UserService) DestructiveReset() error {
 	if err := us.db.Migrator().DropTable(&User{}).Error; err != nil {
 		return us.db.Error
 	}
-	return us.db.AutoMigrate()
+	return us.AutoMigrate()
 }
 
 func (us *UserService) AutoMigrate() error {
@@ -106,4 +118,6 @@ type User struct {
 	gorm.Model
 	Name string
 	Email string `gorm:"unique"`
+	Password string `gorm:"-"`
+	PasswordHash string `gorm:"not null"`
 }
