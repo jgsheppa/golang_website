@@ -48,6 +48,8 @@ func main() {
 	r.Handle("/login", userController.LoginView).Methods("GET")
 	r.HandleFunc("/login", userController.Login).Methods("POST")
 	r.HandleFunc("/cookie", userController.CookieTest).Methods("GET")
+	r.Handle("/dashboard", userController.DashboardView).Methods("GET")
+
 
 	// HandlerFunc converts notFound to the correct type
 	r.NotFoundHandler = http.HandlerFunc(notFound)

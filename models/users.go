@@ -24,6 +24,18 @@ var (
 const userPwPepper = "?3o!yM$LmRKmQhDD"
 const hmacSecretKey = "secret-hmac-key"
 
+// User model which stores user name, email address, 
+// password hash, and remember hash in the PSQL database.
+type User struct {
+	gorm.Model
+	Name string
+	Email string `gorm:"not null;unique"`
+	Password string `gorm:"-"`
+	PasswordHash string `gorm:"not null"`
+	Remember string `gorm:"-"`
+	RememberHash string `gorm:"not null;unique"`
+
+}
 
 // UserDB is used to interact with the database.
 // As a general rule, any error but ErrNotFound should
@@ -45,24 +57,36 @@ type UserDB interface {
 
 }
 
-func NewUserService(connectionInfo string) (*UserService, error) {
+// UserService is a set of methods used to manipulate and work with the user model
+type UserService interface {
+	Authenticate(email, password string) (*User, error)
+	UserDB
+}
+
+func NewUserService(connectionInfo string) (UserService, error) {
 	ug, err := newUserGorm(connectionInfo)
 	if err != nil {
 		return nil, err
 	}
 
-	return &UserService{
+	return &userService{
 	UserDB: &userValidator{
 		UserDB: ug,
 		},
 	}, nil
 }
 
+// This pattern ensures the type 
+// and the pointer are always aligned
+var _ UserDB = &userValidator{}
+
 type userValidator struct {
 	UserDB
 }
 
-type UserService struct {
+var _ UserDB = &userService{}
+
+type userService struct {
 	UserDB
 }
 
@@ -165,7 +189,7 @@ func (ug *userGorm) ByRemember(token string) (*User, error) {
 	return &user, nil
 }
 
-func (us *UserService) Authenticate(email, password string) (*User, error) {
+func (us *userService) Authenticate(email, password string) (*User, error) {
 	foundUser, err := us.ByEmail(email)
 	if err != nil {
 		return nil, err
@@ -203,15 +227,4 @@ func (ug *userGorm) AutoMigrate() error {
 		return err
 	}
 	return nil
-}
-
-type User struct {
-	gorm.Model
-	Name string
-	Email string `gorm:"not null;unique"`
-	Password string `gorm:"-"`
-	PasswordHash string `gorm:"not null"`
-	Remember string `gorm:"-"`
-	RememberHash string `gorm:"not null;unique"`
-
 }

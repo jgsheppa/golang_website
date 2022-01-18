@@ -12,10 +12,11 @@ import (
 // User to create a new Users controller
 // This function will panic if the templates
 // are parsed incorrectly
-func NewUser(us *models.UserService) *User {
+func NewUser(us models.UserService) *User {
 	return &User{
 		NewView: views.NewView("bootstrap", "users/new"),
 		LoginView: views.NewView("bootstrap", "users/login"),
+		DashboardView: views.NewView("bootstrap", "users/dashboard"),
 		us: us,
 	}
 }
@@ -23,7 +24,8 @@ func NewUser(us *models.UserService) *User {
 type User struct {
 	NewView *views.View
 	LoginView *views.View
-	us *models.UserService
+	DashboardView *views.View
+	us models.UserService
 }
 
 // Used to render the /register HTML form
@@ -65,7 +67,7 @@ func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return 
 	}
-	http.Redirect(w, r, "/cookie", http.StatusFound)
+	http.Redirect(w, r, "/dashboard", http.StatusFound)
 }
 
 
@@ -99,7 +101,7 @@ func (u *User) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/cookie", http.StatusFound)
+	http.Redirect(w, r, "/dashboard", http.StatusFound)
 }
 
 func (u *User) CookieTest(w http.ResponseWriter, r *http.Request) {
