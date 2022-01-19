@@ -43,7 +43,20 @@ func (v *View) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type Data struct {
+	Yield interface{}
+}
+
 func (v *View) Render(w http.ResponseWriter, data interface{}) error {
+	// This will come in chapter 14 or so of Jon Calhoun's program
+	// switch data.(type) {	
+	// case Data:
+	// 	// do nothing
+	// default:
+	// 	data = Data{
+	// 		Yield: data,
+	// 	}
+	// }
 	return v.Template.ExecuteTemplate(w, v.Layout, data)
 }
 

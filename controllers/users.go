@@ -37,6 +37,14 @@ func (u *User) New(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GET /dashboard and pass in user data
+func (u *User) Dashboard(w http.ResponseWriter, r *http.Request) {
+	data := u.GetUser(w, r)
+	if err := u.NewView.Render(w, data); err != nil {
+		panic(err)
+	}
+}
+
 type RegistrationForm struct {
 	Name string `schema:"name"`
 	Email string `schema:"email"`
@@ -116,6 +124,19 @@ func (u *User) CookieTest(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprintln(w, user)
 }
+
+func (u *User) GetUser(w http.ResponseWriter, r *http.Request) (*models.User) {
+	cookie, err := r.Cookie("remember_token"); if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return nil
+	}
+	user, err := u.us.ByRemember(cookie.Value)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return nil
+	}
+	return user
+} 
 
 func (u *User) signIn(w http.ResponseWriter, user *models.User) error {
 	if user.Remember == "" {
