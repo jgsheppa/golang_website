@@ -33,7 +33,7 @@ func main() {
 	}
 	must(err)
 	
-// us.DestructiveReset()
+us.DestructiveReset()
 	us.AutoMigrate()
 
 	staticController := controllers.NewStatic()

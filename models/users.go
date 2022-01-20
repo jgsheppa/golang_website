@@ -2,8 +2,10 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/jgsheppa/golang_website/hash"
@@ -100,11 +102,22 @@ type userValidator struct {
 	hmac hash.HMAC
 }
 
+// User to normalize the email on login and creation of user
+func (uv *userValidator) ByEmail(email string) (*User, error) {
+	user := User{
+		Email: email,
+	}
+	if err := runUserValFuncs(&user, uv.normalizeEmail); err != nil {
+		return nil, err
+	}
+	return uv.UserDB.ByEmail(user.Email)
+}
+
 func (uv *userValidator) ByRemember(token string) (*User, error) {
 	user := User{
 		Remember: token,
 	}
-	if err := runUserValFuncs(&user, uv.hmacRemember); err != nil {
+	if err := runUserValFuncs(&user, uv.setRememberIfUnset, uv.hmacRemember); err != nil {
 		return nil, err
 	}
 	return uv.UserDB.ByRemember(user.RememberHash)
@@ -117,6 +130,8 @@ func (uv *userValidator) Create(user *User) error {
 		uv.bcryptPassword,  
 		uv.setRememberIfUnset, 
 		uv.hmacRemember,
+		uv.normalizeEmail,
+		uv.requireEmail,
 		); 
 	if err != nil {
 		return err
@@ -127,7 +142,12 @@ func (uv *userValidator) Create(user *User) error {
 // Update will update the provided user with all of the 
 // provided data in the user object
 func (uv *userValidator) Update(user *User) error {
-	err := runUserValFuncs(user, uv.bcryptPassword, uv.hmacRemember) 
+	err := runUserValFuncs(user, 
+		uv.bcryptPassword, 
+		uv.hmacRemember, 
+		uv.normalizeEmail,
+		uv.requireEmail,
+		) 
 	if err != nil {
 		return err
 	}
@@ -135,23 +155,49 @@ func (uv *userValidator) Update(user *User) error {
 }
 
 func (uv *userValidator) Delete(id uint) error {
-	if id == 0 {
-		return ErrInvalidID  
+	var user User
+	user.ID = id
+	err := runUserValFuncs(&user, uv.idGreaterThanZero)
+	if err != nil {
+		return err
 	}
 	return uv.UserDB.Delete(id)
 }
 
+func (uv *userValidator) idGreaterThanZero(user *User) error {
+	if user.ID <= 0 {
+		return ErrInvalidID
+	}
+	return nil
+}
+
+func (uv *userValidator) normalizeEmail(user *User) error {
+	user.Email = strings.ToLower(user.Email)
+	user.Email = strings.TrimSpace(user.Email)
+	fmt.Println("normalize", user)
+	return nil
+}
+
+func (uv *userValidator) requireEmail(user *User) error {
+	if user.Email == "" {
+		return errors.New("Email address is required")
+	}
+	fmt.Println("require email", user)
+
+	return nil
+}
+
 // There is no remember token, this function provides one
 func (uv *userValidator) setRememberIfUnset(user *User) error {
-	if user.Remember != "" {
+	if user.Remember == "" {
+		token, err := rand.RememberToken()
+		if err != nil {
+			return err
+		}
+		user.Remember = token
 		return nil
 	}
-	
-	token, err := rand.RememberToken()
-	if err != nil {
-		return err
-	}
-	user.Remember = token
+
 	return nil
 }
 
@@ -169,11 +215,13 @@ func (uv *userValidator) bcryptPassword(user *User) error {
 	user.PasswordHash = string(hashedBytes)
 	// Not required, but this prevents accidental printing of logs
 	user.Password = ""
+	fmt.Println("bcrypt password", user)
+
 	return nil
 }
 
 func (uv *userValidator) hmacRemember(user *User) error {
-	if user.Remember == "" {
+	if user.Remember != "" {
 		return nil
 	}
 	user.RememberHash = uv.hmac.Hash(user.Remember)
