@@ -33,16 +33,12 @@ type User struct {
 //
 // GET /register
 func (u *User) New(w http.ResponseWriter, r *http.Request) {
-	if err := u.NewView.Render(w, nil); err != nil {
-		panic(err)
-	}
+	u.NewView.Render(w, nil)
 }
 
 // GET /dashboard and pass in user data
 func (u *User) Dashboard(w http.ResponseWriter, r *http.Request) {
-	if err := u.NewView.Render(w, "success"); err != nil {
-		panic(err)
-	}
+	u.NewView.Render(w, nil)
 }
 
 type RegistrationForm struct {
@@ -60,10 +56,7 @@ func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 
 	if err := parseForm(r, &form); err != nil {
 		log.Println(err)
-		vd.Alert = &views.Alert{
-			Level: views.AlertLevelDanger,
-			Message: views.AlertMsgGeneric,
-		}
+		vd.SetAlert(err)
 		u.NewView.Render(w, vd)
 		return
 	}
@@ -74,10 +67,7 @@ func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 		Password: form.Password,
 	}
 	if err := u.us.Create(&user); err != nil {
-		vd.Alert = &views.Alert{
-			Level: views.AlertLevelDanger,
-			Message: err.Error(),
-		}
+		vd.SetAlert(err)
 		u.NewView.Render(w, vd)
 		return
 	}
@@ -96,28 +86,30 @@ type LoginForm struct {
 }
 
 func (u *User) Login(w http.ResponseWriter, r *http.Request) {
+	vd := views.Data{}
 	form := LoginForm{}
 	if err := parseForm(r, &form); err != nil {
-		panic(err)
+		log.Panicln(err)
+		vd.SetAlert(err)
+		u.LoginView.Render(w, vd)
+		return
 	}
 
 	user, err := u.us.Authenticate(form.Email, form.Password)
 	if err != nil {
 		switch err {
 		case models.ErrNotFound:
-			fmt.Fprintln(w, "Invalid email address")
-		case models.ErrPasswordIncorrect:
-			fmt.Fprintln(w, "Invalid password")
-		case nil:
-			fmt.Fprintln(w, user)
+			vd.AlertError("Invalid email address")
 		default:
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			vd.SetAlert(err)
 		}
-		return
+		u.LoginView.Render(w, vd)
+		return 
 	}
 	err = u.signIn(w, user)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		vd.SetAlert(err)
+		u.LoginView.Render(w, vd)
 		return
 	}
 	http.Redirect(w, r, "/cookie", http.StatusFound)

@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"log"
 	"os"
 	"regexp"
@@ -17,19 +16,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-var (
-	ErrNotFound = errors.New("models: resource not found")
-	ErrIDInvalid = errors.New("models: ID provided was invalid")
-	ErrPasswordIncorrect = errors.New("models: incorrect password")
-	ErrRememberTokenTooShort = errors.New("models: remember token must be at least 32 bytes")
-	ErrRememberRequired = errors.New("models: remember token required")
-	ErrEmailRequired = errors.New("Email address is required")
-	ErrEmailInvalid = errors.New("Email address is not valid")
-	ErrEmailTaken = errors.New("models: email address is already taken")
-	ErrPasswordMinLength = errors.New("Password must be 8 characters long")
-	ErrPasswordRequired = errors.New("Password is required")
 
-)
 
 const userPwPepper = "?3o!yM$LmRKmQhDD"
 

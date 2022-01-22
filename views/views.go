@@ -1,7 +1,9 @@
 package views
 
 import (
+	"bytes"
 	"html/template"
+	"io"
 	"net/http"
 	"path/filepath"
 )
@@ -38,9 +40,7 @@ type View struct {
 
 func (v *View) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	if err := v.Render(w, nil); err != nil {
-		panic(err)
-	}
+	v.Render(w, nil)
 }
 
 func (v *View) Render(w http.ResponseWriter, data interface{}) error {
@@ -54,7 +54,13 @@ func (v *View) Render(w http.ResponseWriter, data interface{}) error {
 			Yield: data,
 		}
 	}
-	return v.Template.ExecuteTemplate(w, v.Layout, data)
+	var buf bytes.Buffer
+	if err := v.Template.ExecuteTemplate(&buf, v.Layout, data); err != nil {
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return nil
+	}
+	io.Copy(w, &buf)
+	return nil
 }
 
 // Returns a slice of strings 
