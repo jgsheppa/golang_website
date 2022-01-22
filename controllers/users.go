@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/jgsheppa/golang_website/models"
@@ -39,8 +40,7 @@ func (u *User) New(w http.ResponseWriter, r *http.Request) {
 
 // GET /dashboard and pass in user data
 func (u *User) Dashboard(w http.ResponseWriter, r *http.Request) {
-	data := u.GetUser(w, r)
-	if err := u.NewView.Render(w, data); err != nil {
+	if err := u.NewView.Render(w, "success"); err != nil {
 		panic(err)
 	}
 }
@@ -55,10 +55,17 @@ type RegistrationForm struct {
 //
 // POST /register
 func (u *User) Create(w http.ResponseWriter, r *http.Request) {
+	var vd views.Data
 	var form RegistrationForm
 
 	if err := parseForm(r, &form); err != nil {
-		panic(err)
+		log.Println(err)
+		vd.Alert = &views.Alert{
+			Level: views.AlertLevelDanger,
+			Message: views.AlertMsgGeneric,
+		}
+		u.NewView.Render(w, vd)
+		return
 	}
 
 	user := models.User{
@@ -67,12 +74,16 @@ func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 		Password: form.Password,
 	}
 	if err := u.us.Create(&user); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		vd.Alert = &views.Alert{
+			Level: views.AlertLevelDanger,
+			Message: err.Error(),
+		}
+		u.NewView.Render(w, vd)
 		return
 	}
 	err := u.signIn(w, &user)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Redirect(w, r, "/login", http.StatusNotFound)
 		return 
 	}
 	http.Redirect(w, r, "/cookie", http.StatusFound)
