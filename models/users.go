@@ -19,13 +19,16 @@ import (
 
 var (
 	ErrNotFound = errors.New("models: resource not found")
-	ErrInvalidID = errors.New("models: ID provided was invalid")
-	ErrInvalidPassword = errors.New("models: incorrect password")
+	ErrIDInvalid = errors.New("models: ID provided was invalid")
+	ErrPasswordIncorrect = errors.New("models: incorrect password")
 	ErrRememberTokenTooShort = errors.New("models: remember token must be at least 32 bytes")
 	ErrRememberRequired = errors.New("models: remember token required")
 	ErrEmailRequired = errors.New("Email address is required")
 	ErrEmailInvalid = errors.New("Email address is not valid")
 	ErrEmailTaken = errors.New("models: email address is already taken")
+	ErrPasswordMinLength = errors.New("Password must be 8 characters long")
+	ErrPasswordRequired = errors.New("Password is required")
+
 )
 
 const userPwPepper = "?3o!yM$LmRKmQhDD"
@@ -135,9 +138,13 @@ func (uv *userValidator) ByRemember(token string) (*User, error) {
 
 // Will create the provided user
 func (uv *userValidator) Create(user *User) error {
+	// Order of functions passed in to validator is important!
 	err := runUserValFuncs(
 		user, 
+		uv.passwordRequired,
+		uv.checkPasswordMinLength,
 		uv.bcryptPassword,  
+		uv.passwordHashRequired,
 		uv.setRememberIfUnset,
 		uv.rememberMinBytes, 
 		uv.hmacRemember,
@@ -156,8 +163,11 @@ func (uv *userValidator) Create(user *User) error {
 // Update will update the provided user with all of the 
 // provided data in the user object
 func (uv *userValidator) Update(user *User) error {
+	// Order of functions passed in to validator is important!
 	err := runUserValFuncs(user, 
+		uv.checkPasswordMinLength,
 		uv.bcryptPassword, 
+		uv.passwordHashRequired,
 		uv.rememberMinBytes, 
 		uv.hmacRemember, 
 		uv.rememberHashRequired,
@@ -184,7 +194,7 @@ func (uv *userValidator) Delete(id uint) error {
 
 func (uv *userValidator) idGreaterThanZero(user *User) error {
 	if user.ID <= 0 {
-		return ErrInvalidID
+		return ErrIDInvalid
 	}
 	return nil
 }
@@ -246,6 +256,30 @@ func (uv *userValidator) bcryptPassword(user *User) error {
 	// Not required, but this prevents accidental printing of logs
 	user.Password = ""
 	
+	return nil
+}
+
+func (uv *userValidator) checkPasswordMinLength(user *User) error {
+	if user.Password == "" {
+		return nil
+	}
+	if len(user.Password) < 8 {
+		return ErrPasswordMinLength
+	}
+	return nil
+}
+
+func (uv *userValidator) passwordRequired(user *User) error {
+	if user.Password == "" {
+		return ErrPasswordRequired
+	}
+	return nil
+}
+
+func (uv *userValidator) passwordHashRequired(user *User) error {
+	if user.PasswordHash == "" {
+		return ErrPasswordRequired
+	}
 	return nil
 }
 
@@ -379,7 +413,7 @@ func (us *userService) Authenticate(email, password string) (*User, error) {
 	if err != nil {
 		switch err {
 		case bcrypt.ErrMismatchedHashAndPassword:
-			return nil, ErrInvalidPassword
+			return nil, ErrPasswordIncorrect
 		default:
 			return nil, err
 		}
