@@ -2,9 +2,9 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -21,10 +21,15 @@ var (
 	ErrNotFound = errors.New("models: resource not found")
 	ErrInvalidID = errors.New("models: ID provided was invalid")
 	ErrInvalidPassword = errors.New("models: incorrect password")
+	ErrRememberTokenTooShort = errors.New("models: remember token must be at least 32 bytes")
+	ErrRememberRequired = errors.New("models: remember token required")
+	ErrEmailRequired = errors.New("Email address is required")
+	ErrEmailInvalid = errors.New("Email address is not valid")
+	ErrEmailTaken = errors.New("models: email address is already taken")
 )
 
 const userPwPepper = "?3o!yM$LmRKmQhDD"
-const hmacSecretKey = "secret-hmac-key"
+
 
 // User model which stores user name, email address, 
 // password hash, and remember hash in the PSQL database.
@@ -65,20 +70,16 @@ type UserService interface {
 	UserDB
 }
 
-func NewUserService(connectionInfo string) (UserService, error) {
+func NewUserService(connectionInfo string, hmacKey string) (UserService, error) {
 	ug, err := newUserGorm(connectionInfo)
 	if err != nil {
 		return nil, err
 	}
-	hmac := hash.NewHMAC(hmacSecretKey)
-	uv := &userValidator{
-		hmac: hmac,
-		UserDB: ug,
-	}
+	hmac := hash.NewHMAC(hmacKey)
+	uv := newUserValidator(ug, hmac)
+	
 	return &userService{
-	UserDB: &userValidator{
 		UserDB: uv,
-		},
 	}, nil
 }
 
@@ -97,9 +98,18 @@ func runUserValFuncs(user *User, fns ...userValFunc) error {
 // and the pointer are always aligned
 var _ UserDB = &userValidator{}
 
+func newUserValidator(udb UserDB, hmac hash.HMAC) *userValidator {
+	return &userValidator{
+		UserDB: udb,
+		hmac: hmac,
+		emailRegex: regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,16}$`),
+	}
+}
+
 type userValidator struct {
 	UserDB
 	hmac hash.HMAC
+	emailRegex *regexp.Regexp
 }
 
 // User to normalize the email on login and creation of user
@@ -128,10 +138,14 @@ func (uv *userValidator) Create(user *User) error {
 	err := runUserValFuncs(
 		user, 
 		uv.bcryptPassword,  
-		uv.setRememberIfUnset, 
+		uv.setRememberIfUnset,
+		uv.rememberMinBytes, 
 		uv.hmacRemember,
+		uv.rememberHashRequired,
 		uv.normalizeEmail,
 		uv.requireEmail,
+		uv.emailFormat,
+		uv.emailIsAvailable,
 		); 
 	if err != nil {
 		return err
@@ -144,9 +158,13 @@ func (uv *userValidator) Create(user *User) error {
 func (uv *userValidator) Update(user *User) error {
 	err := runUserValFuncs(user, 
 		uv.bcryptPassword, 
+		uv.rememberMinBytes, 
 		uv.hmacRemember, 
+		uv.rememberHashRequired,
 		uv.normalizeEmail,
 		uv.requireEmail,
+		uv.emailFormat,
+		uv.emailIsAvailable,
 		) 
 	if err != nil {
 		return err
@@ -174,32 +192,44 @@ func (uv *userValidator) idGreaterThanZero(user *User) error {
 func (uv *userValidator) normalizeEmail(user *User) error {
 	user.Email = strings.ToLower(user.Email)
 	user.Email = strings.TrimSpace(user.Email)
-	fmt.Println("normalize", user)
+	return nil
+}
+
+func (uv *userValidator) emailFormat(user *User) error {
+	if user.Email == "" {
+		return nil
+	}
+	if !uv.emailRegex.MatchString(user.Email) {
+		return ErrEmailInvalid
+	}
+	return nil
+}
+
+func (uv *userValidator) emailIsAvailable(user *User) error {
+	existing, err := uv.ByEmail(user.Email)
+	if err == ErrNotFound {
+		// Email is not taken; proceed with login/register process
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	// We found a user with this email address
+	// If the user id is the same then we treat this as an update
+	if user.ID != existing.ID {
+		return ErrEmailTaken
+	}
 	return nil
 }
 
 func (uv *userValidator) requireEmail(user *User) error {
 	if user.Email == "" {
-		return errors.New("Email address is required")
-	}
-	fmt.Println("require email", user)
-
-	return nil
-}
-
-// There is no remember token, this function provides one
-func (uv *userValidator) setRememberIfUnset(user *User) error {
-	if user.Remember == "" {
-		token, err := rand.RememberToken()
-		if err != nil {
-			return err
-		}
-		user.Remember = token
-		return nil
+		return ErrEmailRequired
 	}
 
 	return nil
 }
+
 
 // Used during user validation to hash the user's submitted password
 func (uv *userValidator) bcryptPassword(user *User) error {
@@ -215,16 +245,50 @@ func (uv *userValidator) bcryptPassword(user *User) error {
 	user.PasswordHash = string(hashedBytes)
 	// Not required, but this prevents accidental printing of logs
 	user.Password = ""
-	fmt.Println("bcrypt password", user)
-
+	
 	return nil
 }
 
-func (uv *userValidator) hmacRemember(user *User) error {
+// There is no remember token, this function provides one
+func (uv *userValidator) setRememberIfUnset(user *User) error {
 	if user.Remember != "" {
 		return nil
 	}
+	token, err := rand.RememberToken()
+	if err != nil {
+		return err
+	}
+	user.Remember = token
+	return nil
+}
+
+
+func (uv *userValidator) hmacRemember(user *User) error {
+	if user.Remember == "" {
+		return nil
+	}
 	user.RememberHash = uv.hmac.Hash(user.Remember)
+	return nil
+}
+
+func (uv *userValidator) rememberHashRequired(user *User) error {
+	if user.Remember == "" {
+		return ErrRememberRequired
+	}
+	return nil
+}
+
+func (uv *userValidator) rememberMinBytes(user *User) error {
+	if user.Remember == ""{
+		return nil
+	}
+	n, err := rand.NBytes(user.Remember)
+	if err != nil {
+		return err
+	}
+	if n < 32 {
+		return ErrRememberTokenTooShort
+	}
 	return nil
 }
 
@@ -331,6 +395,8 @@ func first(db *gorm.DB, dst interface{}) error {
 	return err
 }
 
+
+// Used to delete an old database tables and entries in development
 func (ug *userGorm) DestructiveReset() error {
 	if err := ug.db.Migrator().DropTable(&User{}); err != nil {
 		return err
@@ -338,6 +404,7 @@ func (ug *userGorm) DestructiveReset() error {
 	return ug.AutoMigrate()
 }
 
+// Used to migrate the model
 func (ug *userGorm) AutoMigrate() error {
 	if err := ug.db.AutoMigrate(&User{}); err != nil {
 		return err

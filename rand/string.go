@@ -31,3 +31,12 @@ func BytesToString (nBytes int) (string, error) {
 func RememberToken() (string, error) {
 	return BytesToString(RememberTokenBytes)
 }
+
+// Used to validate and normalize remember tokens
+func NBytes(base64String string) (int, error) {
+	b, err := base64.URLEncoding.DecodeString(base64String)
+	if err != nil {
+		return -1, err
+	}
+	return len(b), nil
+}
