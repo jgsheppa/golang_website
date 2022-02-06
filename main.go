@@ -20,15 +20,16 @@ const (
 	host = "localhost"
 	port = 5432
 	user = "jamessheppard"
-	dbname = "golang"
+	dbname = "golang_website"
+	password = "password"
 )
 
 const hmacSecretKey = "secret"
 
 func main() {
 
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable", 
-	host, port, user, dbname)
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", 
+	host, port, user, password, dbname)
 	us, err := models.NewUserService(psqlInfo, hmacSecretKey)
 	if err != nil {
 	panic(err)
