@@ -20,27 +20,25 @@ const (
 	host = "localhost"
 	port = 5432
 	user = "jamessheppard"
-	dbname = "golang_website"
+	dbname = "golang"
 	password = "password"
 )
-
-const hmacSecretKey = "secret"
 
 func main() {
 
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", 
 	host, port, user, password, dbname)
-	us, err := models.NewUserService(psqlInfo, hmacSecretKey)
+	services, err := models.NewServices(psqlInfo)
 	if err != nil {
 	panic(err)
 	}
 	must(err)
-	
-// us.DestructiveReset()
-	us.AutoMigrate()
+	// TODO: fix this
+	services.DestructiveReset()
+	services.AutoMigrate()
 
 	staticController := controllers.NewStatic()
-	userController := controllers.NewUser(us)
+	userController := controllers.NewUser(services.User)
 
 	r := mux.NewRouter()
 	r.Handle("/", staticController.Home).Methods("GET")

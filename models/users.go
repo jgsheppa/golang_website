@@ -1,22 +1,18 @@
 package models
 
 import (
-	"log"
-	"os"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/jgsheppa/golang_website/hash"
 	"github.com/jgsheppa/golang_website/rand"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/driver/postgres"
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 
+const hmacSecretKey = "secret"
 
 const userPwPepper = "?3o!yM$LmRKmQhDD"
 
@@ -47,10 +43,6 @@ type UserDB interface {
 	Create(user *User) error
 	Update(user *User) error
 	Delete (id uint) error
-	
-	// Migration helpers
-	AutoMigrate() error
-	DestructiveReset() error
 
 }
 
@@ -60,17 +52,15 @@ type UserService interface {
 	UserDB
 }
 
-func NewUserService(connectionInfo string, hmacKey string) (UserService, error) {
-	ug, err := newUserGorm(connectionInfo)
-	if err != nil {
-		return nil, err
-	}
-	hmac := hash.NewHMAC(hmacKey)
+
+func NewUserService(db *gorm.DB) UserService {
+	ug := &userGorm{db}
+	hmac := hash.NewHMAC(hmacSecretKey)
 	uv := newUserValidator(ug, hmac)
 	
 	return &userService{
 		UserDB: uv,
-	}, nil
+	}
 }
 
 type userValFunc func(*User) error
@@ -319,25 +309,7 @@ type userService struct {
 	UserDB
 }
 
-func newUserGorm(connectionInfo string)  (*userGorm, error) {
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
-				SlowThreshold:              time.Second,   // Slow SQL threshold
-				LogLevel:                   logger.Info, // Log level
-				IgnoreRecordNotFoundError: true,           // Ignore ErrRecordNotFound error for logger
-				Colorful:                  true,          // Disable color
-			},
-		)
 
-	db, err := gorm.Open(postgres.Open(connectionInfo), &gorm.Config{Logger: newLogger})
-	if err != nil {
-		panic(err)
-	}
-	return &userGorm{
-		db: db,
-	}, nil
-}
 
 var _ UserDB = &userGorm{}
 
@@ -417,18 +389,3 @@ func first(db *gorm.DB, dst interface{}) error {
 }
 
 
-// Used to delete an old database tables and entries in development
-func (ug *userGorm) DestructiveReset() error {
-	if err := ug.db.Migrator().DropTable(&User{}); err != nil {
-		return err
-	}
-	return ug.AutoMigrate()
-}
-
-// Used to migrate the model
-func (ug *userGorm) AutoMigrate() error {
-	if err := ug.db.AutoMigrate(&User{}); err != nil {
-		return err
-	}
-	return nil
-}
