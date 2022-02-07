@@ -33,12 +33,13 @@ func main() {
 	panic(err)
 	}
 	must(err)
-	// TODO: fix this
+
 	services.DestructiveReset()
 	services.AutoMigrate()
 
 	staticController := controllers.NewStatic()
 	userController := controllers.NewUser(services.User)
+	galleriesC := controllers.NewGallery(services.Gallery)
 
 	r := mux.NewRouter()
 	r.Handle("/", staticController.Home).Methods("GET")
@@ -50,6 +51,10 @@ func main() {
 	r.HandleFunc("/login", userController.Login).Methods("POST")
 	r.HandleFunc("/cookie", userController.CookieTest).Methods("GET")
 	r.Handle("/dashboard", userController.DashboardView).Methods("GET")
+
+	// Gallery routes
+	r.Handle("/galleries/new", galleriesC.New).Methods("GET")
+	r.HandleFunc("/galleries", galleriesC.Create).Methods("POST")
 
 
 	// HandlerFunc converts notFound to the correct type

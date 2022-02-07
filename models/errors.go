@@ -4,15 +4,17 @@ import "strings"
 
 const (
 	ErrNotFound modelError = "models: resource not found"
-	ErrIDInvalid modelError = "models: ID provided was invalid"
+	ErrIDInvalid privateError = "models: ID provided was invalid"
 	ErrPasswordIncorrect modelError = "models: incorrect password"
-	ErrRememberTokenTooShort modelError = "models: remember token must be at least 32 bytes"
-	ErrRememberRequired modelError = "models: remember token required"
+	ErrRememberTokenTooShort privateError = "models: remember token must be at least 32 bytes"
+	ErrRememberRequired privateError = "models: remember token required"
 	ErrEmailRequired modelError = "Email address is required"
 	ErrEmailInvalid modelError = "Email address is not valid"
 	ErrEmailTaken modelError = "models: email address is already taken"
 	ErrPasswordMinLength modelError = "Password must be 8 characters long"
 	ErrPasswordRequired modelError = "Password is required"
+	ErrUserIDRequired privateError = "models: user does not have id"
+	ErrTitleRequired modelError = "A title is required for your gallery"
 
 )
 
@@ -29,3 +31,8 @@ func (e modelError) Public() string {
 	return strings.Join(split, " ")
 }
 
+type privateError string
+
+func (e privateError) Error() string {
+	return string(e)
+}
