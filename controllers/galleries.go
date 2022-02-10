@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/jgsheppa/golang_website/context"
 	"github.com/jgsheppa/golang_website/models"
 	"github.com/jgsheppa/golang_website/views"
 )
@@ -37,9 +38,15 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 		g.New.Render(w, vd)
 		return
 	}
-
+	user := context.User(r.Context())
+	if user == nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	fmt.Println("Create got the user:", user)
 	gallery := models.Gallery{
 		Title: form.Title,
+		UserId: user.ID,
 	}
 	if err := g.gs.Create(&gallery); err != nil {
 		vd.SetAlert(err)

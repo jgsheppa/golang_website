@@ -35,7 +35,7 @@ func main() {
 	}
 	must(err)
 
-	services.DestructiveReset()
+	// services.DestructiveReset()
 	services.AutoMigrate()
 
 	staticController := controllers.NewStatic()
