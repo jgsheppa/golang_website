@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jgsheppa/golang_website/controllers"
+	"github.com/jgsheppa/golang_website/middleware"
 	"github.com/jgsheppa/golang_website/models"
 )
 
@@ -17,10 +18,10 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 
 
 const (
-	host = "localhost"
+	host = "127.0.0.1"
 	port = 5432
 	user = "jamessheppard"
-	dbname = "golang"
+	dbname = "golang_website"
 	password = "password"
 )
 
@@ -50,11 +51,14 @@ func main() {
 	r.Handle("/login", userController.LoginView).Methods("GET")
 	r.HandleFunc("/login", userController.Login).Methods("POST")
 	r.HandleFunc("/cookie", userController.CookieTest).Methods("GET")
-	r.Handle("/dashboard", userController.DashboardView).Methods("GET")
-
+	
 	// Gallery routes
-	r.Handle("/galleries/new", galleriesC.New).Methods("GET")
-	r.HandleFunc("/galleries", galleriesC.Create).Methods("POST")
+	requiredUserMW := middleware.RequireUser{
+		UserService: services.User,
+	}
+	r.Handle("/galleries/new", requiredUserMW.Apply(galleriesC.New)).Methods("GET")
+	r.HandleFunc("/galleries", requiredUserMW.ApplyFn(galleriesC.Create)).Methods("POST")
+	r.Handle("/dashboard", requiredUserMW.Apply(userController.DashboardView)).Methods("GET")
 
 
 	// HandlerFunc converts notFound to the correct type

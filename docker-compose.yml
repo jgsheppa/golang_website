@@ -5,22 +5,11 @@ services:
     image: postgres
     restart: always
     environment:
-      HOST: localhost
       POSTGRES_USER: jamessheppard
       POSTGRES_PASSWORD: password
       POSTGRES_DB: golang_website
     ports:
-      - 5432:5432
-  web:
-    build: ./Dockerfile
-    # command: ['./scripts/wait-for-it.sh', 'db:5432', '--', 'go', 'run', 'main.go']
-    command: ['ls']
-    ports:
-      - '3000:3080'
-    depends_on:
-      - db
-    links:
-      - db
+      - '127.0.0.1:5432:5432'
 
   adminer:
     image: adminer
