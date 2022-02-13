@@ -29,6 +29,17 @@ func (gv *galleryValidator) Create(gallery *Gallery) error {
 	return gv.GalleryDB.Create(gallery)
 }
 
+func (gv *galleryValidator) Update(gallery *Gallery) error {
+	// Order of functions passed in to validator is important!
+	err := runGalleryValFuncs(
+		gallery, gv.titleRequired, gv.userIDRequired,
+		); 
+	if err != nil {
+		return err
+	}
+	return gv.GalleryDB.Update(gallery)
+}
+
 func NewGalleryService(db *gorm.DB) GalleryService {
 	return &galleryService{
 		GalleryDB: &galleryValidator{
@@ -44,7 +55,9 @@ var _ GalleryDB = &galleryGorm{}
 
 type GalleryDB interface{
 	Create(gallery *Gallery) error 
+	Update(gallery *Gallery) error
 	ByID (id uint) (*Gallery, error)
+	Delete (id uint) error
 }
 
 type galleryGorm struct {
@@ -53,6 +66,15 @@ type galleryGorm struct {
 
 func (gg *galleryGorm) Create(gallery *Gallery) error {
 		return gg.db.Create(gallery).Error
+}
+
+func (gg *galleryGorm) Update(gallery *Gallery) error {
+	return gg.db.Save(gallery).Error
+}
+
+func (gg *galleryGorm) Delete(id uint) error {
+	gallery := Gallery{Model: gorm.Model{ID:id}}
+	return gg.db.Delete(&gallery).Error
 }
 
 func (gg *galleryGorm) ByID(id uint) (*Gallery, error) {
@@ -74,6 +96,16 @@ func (gv *galleryValidator) titleRequired(g *Gallery) error {
 		return ErrTitleRequired
 	}
 	return nil
+}
+
+func (gv *galleryValidator) Delete(id uint) error {
+	var gallery Gallery
+	gallery.ID = id
+	if id <= 0 {
+		return ErrIDInvalid
+	}
+
+	return gv.GalleryDB.Delete(id)
 }
 
 type galleryValFunc func(*Gallery) error
