@@ -58,6 +58,7 @@ func main() {
 	}
 	r.Handle("/galleries/new", requiredUserMW.Apply(galleriesC.New)).Methods("GET")
 	r.HandleFunc("/galleries", requiredUserMW.ApplyFn(galleriesC.Create)).Methods("POST")
+	r.HandleFunc("/galleries/{id:[0-9]+}/edit", requiredUserMW.ApplyFn(galleriesC.Edit)).Methods("GET")
 	r.HandleFunc("/galleries/{id:[0-9]+}", galleriesC.Show).Methods("GET").Name(controllers.ShowGallery)
 	r.Handle("/dashboard", requiredUserMW.Apply(userController.DashboardView)).Methods("GET")
 

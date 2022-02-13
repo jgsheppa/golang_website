@@ -20,6 +20,7 @@ func NewGallery(gs models.GalleryService, r *mux.Router) *Galleries {
 	return &Galleries{
 		New: views.NewView("bootstrap", "galleries/new"),
 		ShowView: views.NewView("bootstrap", "galleries/show"),
+		EditView: views.NewView("bootstrap", "galleries/edit"),
 		gs: gs,
 		r: r,
 	}
@@ -28,6 +29,7 @@ func NewGallery(gs models.GalleryService, r *mux.Router) *Galleries {
 type Galleries struct {
 	New *views.View
 	ShowView *views.View
+	EditView *views.View
 	gs models.GalleryService
 	r *mux.Router
 }
@@ -38,23 +40,9 @@ type GalleryForm struct {
 
 // GET /gallers/:id	
 func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
-	idStr := vars["id"]
-	id, err := strconv.Atoi(idStr)
+	gallery, err := g.galleryByID(w, r)
 	if err != nil {
-		http.Error(w, "Invalid gallery ID", http.StatusNotFound)
-	}
-	gallery, err := g.gs.ByID(uint(id))
-	if err != nil {
-		switch err {
-		case models.ErrNotFound:
-			http.Error(w, "Gallery not found", http.StatusNotFound)
-			return
-		default:
-			http.Error(w, "Whoops! Something went wrong.", http.StatusNotFound)
-			return
-		}
+		return
 	}
 
 	var vd views.Data
@@ -97,5 +85,43 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	http.Redirect(w, r, url.Path, http.StatusFound)
 
+}
 
+// GET /galleries/:id/edit
+func (g *Galleries) Edit(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryByID(w, r)
+	if err != nil {
+		return
+	}
+	user := context.User(r.Context())
+	if gallery.UserId != user.ID {
+		http.Error(w, "Gallery Not Found", http.StatusNotFound)
+		return
+	}
+
+	var vd views.Data
+	vd.Yield = gallery
+	g.EditView.Render(w, vd)
+}
+
+func (g *Galleries) galleryByID(w http.ResponseWriter, r *http.Request) (*models.Gallery, error) {
+	vars := mux.Vars(r)
+
+	idStr := vars["id"]
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid gallery ID", http.StatusNotFound)
+		return nil, err
+	}
+	gallery, err := g.gs.ByID(uint(id))
+	if err != nil {
+		switch err {
+		case models.ErrNotFound:
+			http.Error(w, "Gallery not found", http.StatusNotFound)
+		default:
+			http.Error(w, "Whoops! Something went wrong.", http.StatusNotFound)
+		}
+		return nil, err
+	}
+	return gallery, nil
 }

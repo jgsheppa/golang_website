@@ -1,0 +1,24 @@
+{{define "yield"}}
+  <div class="row">
+    <div class="col-md-6 col-md-offset-3">
+      <div class="panel panel-primary">
+        <div class="panel-heading ">Edit Your Gallery</div>
+        <div class="panel-body ">
+          {{template "editGalleryForm" .}}
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+{{end}}
+
+
+{{define "editGalleryForm"}}
+  <form action="/galleries/{{.ID}}/update" method="POST">
+  <div class="form-group">
+    <label for="title">Gallery title</label>
+    <input type="text" name="title" class="form-control" id="title" placeholder="What is the new title of your gallery?" value="{{.Title}}">
+  </div>
+  <button type="submit" class="btn btn-primary">Update</button>
+</form>
+{{end}}
