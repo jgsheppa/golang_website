@@ -1,5 +1,7 @@
 package views
 
+import "github.com/jgsheppa/golang_website/models"
+
 const (
 	AlertLevelDanger = "danger"
 	AlertLevelWarning = "warning"
@@ -19,6 +21,7 @@ type Alert struct {
 // This is used to pass dynamic data to HTML templates
 type Data struct {
 	Alert *Alert
+	User *models.User
 	Yield interface{}
 }
 

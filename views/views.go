@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+
+	"github.com/jgsheppa/golang_website/context"
 )
 
 var (
@@ -39,28 +41,28 @@ type View struct {
 }
 
 func (v *View) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	v.Render(w, nil)
+	v.Render(w, r, nil)
 }
 
-func (v *View) Render(w http.ResponseWriter, data interface{}) error {
+func (v *View) Render(w http.ResponseWriter, r *http.Request, data interface{}) {
 	w.Header().Set("Content-Type", "text/html")
-	
-	switch data := data.(type) {
+	var vd Data
+	switch d := data.(type) {
 	case Data:
+		vd = d
 		// do nothing
 	default:
 		data = Data{
 			Yield: data,
 		}
 	}
+	vd.User = context.User(r.Context())
 	var buf bytes.Buffer
-	if err := v.Template.ExecuteTemplate(&buf, v.Layout, data); err != nil {
+	if err := v.Template.ExecuteTemplate(&buf, v.Layout, vd); err != nil {
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
-		return nil
+		return
 	}
 	io.Copy(w, &buf)
-	return nil
 }
 
 // Returns a slice of strings 

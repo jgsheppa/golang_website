@@ -43,6 +43,14 @@ func main() {
 	userController := controllers.NewUser(services.User)
 	galleriesC := controllers.NewGallery(services.Gallery, r)
 
+	// Middleware to protect routes
+	userMw := middleware.User{
+		UserService: services.User,
+	}
+	requiredUserMW := middleware.RequireUser{
+		User: userMw,
+	}
+
 	r.Handle("/", staticController.Home).Methods("GET")
 	r.Handle("/contact", staticController.Contact).Methods("GET")
 	r.Handle("/about", staticController.About).Methods("GET")
@@ -50,12 +58,7 @@ func main() {
 	r.HandleFunc("/register", userController.Create).Methods("POST")
 	r.Handle("/login", userController.LoginView).Methods("GET")
 	r.HandleFunc("/login", userController.Login).Methods("POST")
-	r.HandleFunc("/cookie", userController.CookieTest).Methods("GET")
 	
-	// Gallery routes
-	requiredUserMW := middleware.RequireUser{
-		UserService: services.User,
-	}
 	// Gallery Views
 	r.Handle("/galleries", requiredUserMW.ApplyFn(galleriesC.Index)).Methods("GET")
 	r.Handle("/galleries/new", requiredUserMW.Apply(galleriesC.New)).Methods("GET")
@@ -70,7 +73,7 @@ func main() {
 	// HandlerFunc converts notFound to the correct type
 	r.NotFoundHandler = http.HandlerFunc(notFound)
 	fmt.Println("Starting the development server on port 3000...")
-	http.ListenAndServe(":3000", r)
+	http.ListenAndServe(":3000", userMw.Apply(r))
 }
 
 func must(err error) {

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -33,12 +32,12 @@ type User struct {
 //
 // GET /register
 func (u *User) New(w http.ResponseWriter, r *http.Request) {
-	u.NewView.Render(w, nil)
+	u.NewView.Render(w, r, nil)
 }
 
 // GET /dashboard and pass in user data
 func (u *User) Dashboard(w http.ResponseWriter, r *http.Request) {
-	u.NewView.Render(w, nil)
+	u.NewView.Render(w, r, nil)
 }
 
 type RegistrationForm struct {
@@ -57,7 +56,7 @@ func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 	if err := parseForm(r, &form); err != nil {
 		log.Println(err)
 		vd.SetAlert(err)
-		u.NewView.Render(w, vd)
+		u.NewView.Render(w, r, vd)
 		return
 	}
 
@@ -68,7 +67,7 @@ func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := u.us.Create(&user); err != nil {
 		vd.SetAlert(err)
-		u.NewView.Render(w, vd)
+		u.NewView.Render(w, r, vd)
 		return
 	}
 	err := u.signIn(w, &user)
@@ -76,7 +75,7 @@ func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusNotFound)
 		return 
 	}
-	http.Redirect(w, r, "/cookie", http.StatusFound)
+	http.Redirect(w, r, "/galleries/new", http.StatusFound)
 }
 
 
@@ -91,7 +90,7 @@ func (u *User) Login(w http.ResponseWriter, r *http.Request) {
 	if err := parseForm(r, &form); err != nil {
 		log.Panicln(err)
 		vd.SetAlert(err)
-		u.LoginView.Render(w, vd)
+		u.LoginView.Render(w, r, vd)
 		return
 	}
 
@@ -103,29 +102,16 @@ func (u *User) Login(w http.ResponseWriter, r *http.Request) {
 		default:
 			vd.SetAlert(err)
 		}
-		u.LoginView.Render(w, vd)
+		u.LoginView.Render(w, r, vd)
 		return 
 	}
 	err = u.signIn(w, user)
 	if err != nil {
 		vd.SetAlert(err)
-		u.LoginView.Render(w, vd)
+		u.LoginView.Render(w, r, vd)
 		return
 	}
-	http.Redirect(w, r, "/cookie", http.StatusFound)
-}
-
-func (u *User) CookieTest(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("remember_token"); if err != nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
-	user, err := u.us.ByRemember(cookie.Value)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
-	fmt.Fprintln(w, user)
+	http.Redirect(w, r, "/galleries", http.StatusFound)
 }
 
 func (u *User) GetUser(w http.ResponseWriter, r *http.Request) (*models.User) {
