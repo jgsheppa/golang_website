@@ -56,9 +56,11 @@ func main() {
 	requiredUserMW := middleware.RequireUser{
 		UserService: services.User,
 	}
+	// Gallery Views
 	r.Handle("/galleries/new", requiredUserMW.Apply(galleriesC.New)).Methods("GET")
 	r.HandleFunc("/galleries", requiredUserMW.ApplyFn(galleriesC.Create)).Methods("POST")
 	r.HandleFunc("/galleries/{id:[0-9]+}/edit", requiredUserMW.ApplyFn(galleriesC.Edit)).Methods("GET")
+	r.HandleFunc("/galleries/{id:[0-9]+}/update", requiredUserMW.ApplyFn(galleriesC.Update)).Methods("POST")
 	r.HandleFunc("/galleries/{id:[0-9]+}", galleriesC.Show).Methods("GET").Name(controllers.ShowGallery)
 	r.Handle("/dashboard", requiredUserMW.Apply(userController.DashboardView)).Methods("GET")
 
