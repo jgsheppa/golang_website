@@ -14,6 +14,7 @@ import (
 
 const (
 	ShowGallery = "show_gallery"
+	EditGallery = "edit_gallery"
 )
 
 func NewGallery(gs models.GalleryService, r *mux.Router) *Galleries {
@@ -21,6 +22,7 @@ func NewGallery(gs models.GalleryService, r *mux.Router) *Galleries {
 		New: views.NewView("bootstrap", "galleries/new"),
 		ShowView: views.NewView("bootstrap", "galleries/show"),
 		EditView: views.NewView("bootstrap", "galleries/edit"),
+		IndexView: views.NewView("bootstrap", "galleries/index"),
 		gs: gs,
 		r: r,
 	}
@@ -30,6 +32,7 @@ type Galleries struct {
 	New *views.View
 	ShowView *views.View
 	EditView *views.View
+	IndexView *views.View
 	gs models.GalleryService
 	r *mux.Router
 }
@@ -48,6 +51,21 @@ func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 	var vd views.Data
 	vd.Yield = gallery
 	g.ShowView.Render(w, vd)
+}
+
+// GET /galleries
+func (g *Galleries) Index(w http.ResponseWriter, r *http.Request) {
+	user := context.User(r.Context())
+	galleries, err := g.gs.ByUserID(user.ID)
+	if err != nil {
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+	
+
+	var vd views.Data
+	vd.Yield = galleries
+	g.IndexView.Render(w, vd)
 }
 
 // POST to /galleries
@@ -77,7 +95,7 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	// This is used to get the URL to show galleries and return
 	// the correct gallery given a valid ID
-	url, err := g.r.Get(ShowGallery).URL("id", fmt.Sprintf("%v", gallery.ID))
+	url, err := g.r.Get(EditGallery).URL("id", fmt.Sprintf("%v", gallery.ID))
 	if err != nil {
 		// TODO make this go to the index page
 		http.Redirect(w, r, "/", http.StatusFound)
@@ -107,7 +125,7 @@ func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
 		g.EditView.Render(w, vd)
 		return
 	}
-	fmt.Fprintln(w, "successfully deleted!")
+	http.Redirect(w, r, "/galleries", http.StatusFound)
 }
 
 // GET /galleries/:id/edit

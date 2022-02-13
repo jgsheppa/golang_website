@@ -1,0 +1,38 @@
+{{define "yield"}}
+  <div class="row">
+    <div class="col-md-12">
+    <a href="/galleries/new" class="btn btn-primary pull-right">New Gallery</a>
+     <table class="table">
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Gallery</th>
+          <th scope="col">View</th>
+          <th scope="col">Edit</th>
+          <th scope="col">Delete</th>
+        </tr>
+      </thead>
+      <tbody>
+     {{ range .}}
+        <tr>
+          <th scope="row">{{.ID}}</th>
+          <td>{{.Title}}</td>
+          <td>
+            <a href="/galleries/{{.ID}}">View</a>
+          </td>
+          <td>
+            <a href="/galleries/{{.ID}}/edit">Edit</a>
+          </td>
+          <td>
+            <form action="/galleries/{{.ID}}/delete" method="POST" style="display: inline;">
+              <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+     {{ end }}
+      </tbody>
+    </table>
+    </div>
+  </div>
+ 
+{{end}}
