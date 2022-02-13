@@ -37,12 +37,12 @@ func main() {
 
 	// services.DestructiveReset()
 	services.AutoMigrate()
-
+	
+	r := mux.NewRouter()
 	staticController := controllers.NewStatic()
 	userController := controllers.NewUser(services.User)
-	galleriesC := controllers.NewGallery(services.Gallery)
+	galleriesC := controllers.NewGallery(services.Gallery, r)
 
-	r := mux.NewRouter()
 	r.Handle("/", staticController.Home).Methods("GET")
 	r.Handle("/contact", staticController.Contact).Methods("GET")
 	r.Handle("/about", staticController.About).Methods("GET")
@@ -58,6 +58,7 @@ func main() {
 	}
 	r.Handle("/galleries/new", requiredUserMW.Apply(galleriesC.New)).Methods("GET")
 	r.HandleFunc("/galleries", requiredUserMW.ApplyFn(galleriesC.Create)).Methods("POST")
+	r.HandleFunc("/galleries/{id:[0-9]+}", galleriesC.Show).Methods("GET").Name(controllers.ShowGallery)
 	r.Handle("/dashboard", requiredUserMW.Apply(userController.DashboardView)).Methods("GET")
 
 
