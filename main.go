@@ -41,7 +41,7 @@ func main() {
 	r := mux.NewRouter()
 	staticController := controllers.NewStatic()
 	userController := controllers.NewUser(services.User)
-	galleriesC := controllers.NewGallery(services.Gallery, r)
+	galleriesC := controllers.NewGallery(services.Gallery, services.Image, r)
 
 	// Middleware to protect routes
 	userMw := middleware.User{
