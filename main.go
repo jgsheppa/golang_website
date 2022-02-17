@@ -58,6 +58,14 @@ func main() {
 	r.HandleFunc("/register", userController.Create).Methods("POST")
 	r.Handle("/login", userController.LoginView).Methods("GET")
 	r.HandleFunc("/login", userController.Login).Methods("POST")
+
+	// JSON Routes
+	r.HandleFunc("/me", requiredUserMW.ApplyFn(userController.GetUserJson)).Methods("GET")
+	r.HandleFunc("/me/galleries/{id:[0-9]+}", requiredUserMW.ApplyFn(galleriesC.GetGalleryJson)).Methods("GET")
+	
+	// Image routes
+	imageHandler := http.FileServer(http.Dir("./images"))
+	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", imageHandler))
 	
 	// Gallery Views
 	r.Handle("/galleries", requiredUserMW.ApplyFn(galleriesC.Index)).Methods("GET")

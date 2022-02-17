@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
+	"github.com/jgsheppa/golang_website/context"
 	"github.com/jgsheppa/golang_website/models"
 	"github.com/jgsheppa/golang_website/rand"
 	"github.com/jgsheppa/golang_website/views"
@@ -149,4 +151,17 @@ func (u *User) signIn(w http.ResponseWriter, user *models.User) error {
 
 	http.SetCookie(w, &cookie)
 	return nil
+}
+
+func (u *User) GetUserJson(w http.ResponseWriter, r *http.Request) {
+	user := context.User(r.Context())
+
+	json, err := json.Marshal(user)
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(json)
 }

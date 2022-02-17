@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -208,8 +209,6 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
-
 	files := r.MultipartForm.File["images"]
 	for _, f := range files {
 		file, err := f.Open()
@@ -228,7 +227,11 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-	fmt.Fprintln(w, "Files successfully uploaded")
+	images, err := g.is.ByGalleryID(gallery.ID)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprintln(w, "Files:", images)
 
 }
 
@@ -251,5 +254,29 @@ func (g *Galleries) galleryByID(w http.ResponseWriter, r *http.Request) (*models
 		}
 		return nil, err
 	}
+	images, err := g.is.ByGalleryID(gallery.ID)
+	if err != nil {
+		gallery.Images = []string{}
+	} else {
+		gallery.Images = images
+	}
 	return gallery, nil
+}
+
+func (g *Galleries) GetGalleryJson(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryByID(w, r)
+	if err != nil {
+		return
+	}
+	json, err := json.Marshal(gallery)
+
+	fmt.Println("ERROR", json)
+
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(json)
 }

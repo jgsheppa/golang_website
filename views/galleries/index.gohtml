@@ -9,6 +9,7 @@
           <th scope="col">Gallery</th>
           <th scope="col">View</th>
           <th scope="col">Edit</th>
+          <th scope="col">JSON</th>
           <th scope="col">Delete</th>
         </tr>
       </thead>
@@ -18,10 +19,13 @@
           <th scope="row">{{.ID}}</th>
           <td>{{.Title}}</td>
           <td>
-            <a href="/galleries/{{.ID}}">View</a>
+            <a target="_blank" href="/galleries/{{.ID}}">View</a>
           </td>
           <td>
-            <a href="/galleries/{{.ID}}/edit">Edit</a>
+            <a target="_blank" href="/galleries/{{.ID}}/edit">Edit</a>
+          </td>
+           <td>
+            <a target="_blank" href="/me/galleries/{{.ID}}">JSON</a>
           </td>
           <td>
             <form action="/galleries/{{.ID}}/delete" method="POST" style="display: inline;">

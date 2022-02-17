@@ -4,8 +4,18 @@
       <h1>
       {{.Title}}
       </h1> 
-      <a href="/galleries/{{.ID}}">Edit</a>
-      <p>Images coming soon!</p>
+      <a target="_blank" href="/galleries/{{.ID}}/edit">Edit</a>
+      <div class="row">
+        {{ range .ImagesSplitN 3 }}
+          <div class="col-md-3">
+            {{ range . }}
+              <a href="{{.}}">
+                <img class="img-thumbnail" src="{{.}}" />
+              </a>
+            {{end}}
+          </div>
+        {{end}}
+      </div>
     </div>
   </div>
 {{end}}

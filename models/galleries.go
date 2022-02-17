@@ -6,6 +6,20 @@ type Gallery struct {
 	gorm.Model
 	UserId uint `gorm:"not_null;index"`
 	Title string `gorm:"not_null"`
+	Images []string `gorm:"-"`
+}
+
+// Used to 
+func (g *Gallery) ImagesSplitN(n int) [][]string {
+	ret := make([][]string, n)
+	for i := 0; i < n; i++ {
+		ret[i] = make([]string, 0)
+	}
+	for i, img := range g.Images {
+		bucket := i % n
+		ret[bucket] = append(ret[bucket], img)
+	}
+	return ret
 }
 
 type GalleryService interface {
@@ -15,8 +29,6 @@ type GalleryService interface {
 type galleryValidator struct {
 	GalleryDB
 }
-
-
 
 func (gv *galleryValidator) Create(gallery *Gallery) error {
 	// Order of functions passed in to validator is important!

@@ -12,10 +12,6 @@
     <div class="col-md-1">
       <label class="control-label pull-right">Images</label>
     </div>
-    <div class="col-md-10">
-          {{/* {{template "galleryImages" .}} */}}
-          Coming soon...
-    </div>
   </div>
   <div class="row">
     <div class="col-md-12">
@@ -26,6 +22,9 @@
     <div class="col-md-12">
       {{ template "deleteGallery" .}}
     </div>
+  </div>
+  <div class="col-md-10 col-md-offset-1">
+        {{template "galleryImages" .}}
   </div>
  
 {{end}}
@@ -67,3 +66,17 @@
     </div>
   </form>
 {{ end }}
+
+{{define "galleryImages"}}
+  <div class="row">
+    {{ range .ImagesSplitN 6 }}
+      <div class="col-md-2">
+      {{ range . }}
+        <a href="{{.}}">
+          <img class="img-thumbnail" src="{{.}}" />
+        </a>
+       {{end}}
+      </div>
+    {{end}}
+  </div>
+{{end}}
