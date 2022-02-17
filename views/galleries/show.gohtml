@@ -9,8 +9,8 @@
         {{ range .ImagesSplitN 3 }}
           <div class="col-md-3">
             {{ range . }}
-              <a href="{{.}}">
-                <img class="img-thumbnail" src="{{.}}" />
+              <a href="{{.Path}}">
+                <img class="img-thumbnail" src="{{.Path}}" />
               </a>
             {{end}}
           </div>

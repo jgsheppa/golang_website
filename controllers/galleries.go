@@ -254,13 +254,78 @@ func (g *Galleries) galleryByID(w http.ResponseWriter, r *http.Request) (*models
 		}
 		return nil, err
 	}
-	images, err := g.is.ByGalleryID(gallery.ID)
-	if err != nil {
-		gallery.Images = []string{}
-	} else {
-		gallery.Images = images
-	}
+	images, _ := g.is.ByGalleryID(gallery.ID)
+	gallery.Images = images
 	return gallery, nil
+}
+
+// POST /galleries/:id/images/:filename/delete
+func (g *Galleries) ImageDelete(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryByID(w, r)
+	if err != nil {
+		return
+	}
+	user := context.User(r.Context())
+	if gallery.UserId != user.ID {
+		http.Error(w, "Gallery Not Found", http.StatusNotFound)
+		return
+	}
+	
+	filename := mux.Vars(r)["filename"]
+	
+	i := models.Image{
+		Filename: filename,
+		GalleryID: gallery.ID,
+	}
+
+	err = g.is.Delete(&i)
+	if err != nil {
+		var vd views.Data
+		vd.Yield = gallery
+		vd.SetAlert(err)
+		g.EditView.Render(w, r, vd)
+		return
+	}
+
+	url, err := g.r.Get(EditGallery).URL("id", fmt.Sprintf("%v", gallery.ID))
+	if err != nil {
+		http.Redirect(w, r, "/galleries", http.StatusFound)
+	}
+	http.Redirect(w, r, url.Path, http.StatusFound)
+	// TODO: parse a multipart form
+	// var vd views.Data
+	// vd.Yield = gallery
+	// err = r.ParseMultipartForm(maxMultipartMemory)
+	// if err != nil {
+	// 	vd.SetAlert(err)
+	// 	g.EditView.Render(w, r, vd)
+	// 	return
+	// }
+
+	// files := r.MultipartForm.File["images"]
+	// for _, f := range files {
+	// 	file, err := f.Open()
+	// 	if err != nil {
+	// 		vd.SetAlert(err)
+	// 		g.EditView.Render(w, r, vd)
+	// 		return
+	// 	}
+	// 	defer file.Close()
+
+	// 	err = g.is.Create(gallery.ID, file, f.Filename)
+	// 	if err != nil {
+	// 		vd.SetAlert(err)
+	// 		g.EditView.Render(w, r, vd)
+	// 		return
+	// 	}
+
+	// }
+	// images, err := g.is.ByGalleryID(gallery.ID)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Fprintln(w, "Files:", images)
+
 }
 
 func (g *Galleries) GetGalleryJson(w http.ResponseWriter, r *http.Request) {

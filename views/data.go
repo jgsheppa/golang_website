@@ -1,6 +1,10 @@
 package views
 
-import "github.com/jgsheppa/golang_website/models"
+import (
+	"log"
+
+	"github.com/jgsheppa/golang_website/models"
+)
 
 const (
 	AlertLevelDanger = "danger"
@@ -32,6 +36,7 @@ func (d *Data) SetAlert(err error) {
 			Message: pErr.Public(),
 		}
 	} else {
+		log.Println(err)
 		d.Alert = &Alert{
 			Level: AlertLevelDanger,
 			Message: AlertMsgGeneric,
