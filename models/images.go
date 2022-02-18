@@ -12,15 +12,23 @@ import (
 type Image struct {
 	GalleryID uint
 	Filename string
+	URL string
 }
+
+const (
+	host = "http://localhost:3000/"
+)
 
 func (i *Image) Path() string {
 	return "/" + i.RelativePath()
 }
 
+func (i *Image) FullPath(id uint, filename string) string {
+	return host + i.RelativePath()
+}
+
 func (i *Image) RelativePath() string {
 	return fmt.Sprintf("images/galleries/%v/%v", i.GalleryID, i.Filename)
-
 }
 
 type ImageService interface {

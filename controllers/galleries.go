@@ -273,12 +273,12 @@ func (g *Galleries) ImageDelete(w http.ResponseWriter, r *http.Request) {
 	
 	filename := mux.Vars(r)["filename"]
 	
-	i := models.Image{
+	userImage := models.Image{
 		Filename: filename,
 		GalleryID: gallery.ID,
 	}
 
-	err = g.is.Delete(&i)
+	err = g.is.Delete(&userImage)
 	if err != nil {
 		var vd views.Data
 		vd.Yield = gallery
@@ -333,9 +333,13 @@ func (g *Galleries) GetGalleryJson(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	json, err := json.Marshal(gallery)
 
-	fmt.Println("ERROR", json)
+	for image := range gallery.Images {
+		// TODO change host depending on environment
+		gallery.Images[image].URL = "http://localhost:3000/images/galleries/" + strconv.FormatUint(uint64(gallery.Images[image].GalleryID), 10) + "/" + gallery.Images[image].Filename
+	}
+
+	json, err := json.Marshal(gallery)
 
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusFound)
