@@ -235,7 +235,11 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Fprintln(w, "Files:", images)
+
+	gallery.Images = images
+	vd.Yield = gallery
+
+	g.EditView.Render(w, r, vd)
 
 }
 
