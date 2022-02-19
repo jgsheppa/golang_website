@@ -4,7 +4,10 @@
       <h1>
       {{.Title}}
       </h1> 
-      <a target="_blank" href="/galleries/{{.ID}}/edit">Edit</a>
+      <div class="column">
+      {{ template "curlGalleryJSON" . }}
+      </div>
+      <a target="_blank" href="/galleries/{{.ID}}/edit">Edit Your Gallery</a>
       <div class="row">
         {{ range .ImagesSplitN 3 }}
           <div class="col-md-3">
@@ -21,3 +24,19 @@
 {{end}}
 
 
+{{ define "curlGalleryJSON" }}
+    <div class="input-group mb-3">
+      <input 
+        type="text" 
+        class="form-control"
+        aria-label="Command to cURL gallery JSON" 
+        aria-describedby="basic-addon2" 
+        name="curlJSON" 
+        value="curl -v --cookie '{{ .UserToken }}' http://localhost:3000/me/galleries/5" 
+        id="curlJSON"
+      >
+      <div class="input-group-append">
+        <button class="btn btn-outline-secondary" type="button" onclick="myFunction()">Copy</button>
+      </div>
+    </div>
+{{ end }}

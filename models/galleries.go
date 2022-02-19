@@ -7,6 +7,7 @@ type Gallery struct {
 	UserId uint `gorm:"not_null;index"`
 	Title string `gorm:"not_null"`
 	Images []Image `gorm:"-"`
+	UserToken string `gorm:"-"`
 }
 
 // Used to 

@@ -48,10 +48,14 @@ type GalleryForm struct {
 
 // GET /gallers/:id	
 func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
+	rememberCookie := r.Header.Get("Cookie")
+
 	gallery, err := g.galleryByID(w, r)
 	if err != nil {
 		return
 	}
+
+	gallery.UserToken = rememberCookie
 
 	var vd views.Data
 	vd.Yield = gallery
