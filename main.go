@@ -38,21 +38,8 @@ func main() {
 		log.Fatalf("sentry.Init: %s", err)
 	}
 
-	envHost := os.Getenv("HOST")
-	envUser := os.Getenv("DB_USER")
-	envDB := os.Getenv("DB_NAME")
-	envPW := os.Getenv("PASSWORD")
+	psqlInfo := os.Getenv("DATABASE_URL")
 
-	var (
-		host = envHost
-		port = 5432
-		user = envUser
-		dbname = envDB
-		password = envPW
-	)
-
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", 
-	host, port, user, password, dbname)
 	services, err := models.NewServices(psqlInfo)
 	if err != nil {
 	panic(err)
@@ -91,7 +78,7 @@ func main() {
 	imageHandler := http.FileServer(http.Dir("./images"))
 	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", imageHandler))
 
-	// Assets
+	// Assets	
 	assetHandler := http.FileServer(http.Dir("./assets/"))
 	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", assetHandler))
 	
