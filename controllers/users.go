@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/jgsheppa/golang_website/context"
 	"github.com/jgsheppa/golang_website/models"
@@ -112,6 +113,25 @@ func (u *User) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	http.Redirect(w, r, "/galleries", http.StatusFound)
 }
+
+func (u *User) Logout(w http.ResponseWriter, r *http.Request) {
+	cookie := http.Cookie{
+		Name: "remember_token",
+		Value: "",
+		Expires: time.Now(),
+		HttpOnly: true,
+		Secure: true,
+	}
+	http.SetCookie(w, &cookie)
+
+	user := context.User(r.Context())
+	token, _ := rand.RememberToken()
+	user.Remember = token
+	u.us.Update(user)
+
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
 
 func (u *User) GetUser(w http.ResponseWriter, r *http.Request) (*models.User) {
 	cookie, err := r.Cookie("remember_token"); if err != nil {

@@ -62,7 +62,7 @@ func main() {
 	// TODO: Update to config var
 	prodEnv := os.Getenv("IS_PROD")
 	isProd, err := strconv.ParseBool(prodEnv)
-	
+
 	if err != nil {
 			log.Fatal(err)
 	}
@@ -109,6 +109,8 @@ func main() {
 	r.HandleFunc("/galleries/{id:[0-9]+}", galleriesC.Show).Methods("GET").Name(controllers.ShowGallery)
 	r.Handle("/dashboard", requiredUserMW.Apply(userController.DashboardView)).Methods("GET")
 
+	// Logout action
+	r.HandleFunc("/logout", requiredUserMW.ApplyFn(userController.Logout)).Methods("POST")
 
 	// HandlerFunc converts notFound to the correct type
 	r.NotFoundHandler = http.HandlerFunc(notFound)
