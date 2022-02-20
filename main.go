@@ -22,6 +22,13 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 
 
 func main() {
+	// Necessary for Heroku deploy
+	port := os.Getenv("PORT")
+
+	if port == "" {
+			log.Fatal("$PORT must be set")
+	}
+
 	sentryDsn := os.Getenv("SENTRY_SDK")
 	// User to log any errors to Sentry
 	err := sentry.Init(sentry.ClientOptions{
