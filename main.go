@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/alexsasharegan/dotenv"
 	"github.com/getsentry/sentry-go"
 	"github.com/gorilla/mux"
 	"github.com/jgsheppa/golang_website/controllers"
@@ -23,15 +22,9 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 
 
 func main() {
-	// Used to load environment vars
-	err := dotenv.Load()
-  if err != nil {
-    log.Fatalf("Error loading .env file: %v", err)
-  }
-
 	sentryDsn := os.Getenv("SENTRY_SDK")
 	// User to log any errors to Sentry
-	err = sentry.Init(sentry.ClientOptions{
+	err := sentry.Init(sentry.ClientOptions{
 		Dsn: sentryDsn,
 	})
 	if err != nil {

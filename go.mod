@@ -5,7 +5,6 @@ go 1.17
 require github.com/jinzhu/gorm v1.9.16
 
 require (
-	github.com/alexsasharegan/dotenv v0.0.0-20171113213728-090a4d1b5d42 // indirect
 	github.com/getsentry/sentry-go v0.12.0 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/schema v1.2.0 // indirect
