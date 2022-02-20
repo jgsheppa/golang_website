@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/jgsheppa/golang_website/context"
 	"github.com/jgsheppa/golang_website/models"
@@ -18,6 +19,14 @@ func (mw *User) Apply(next http.Handler) http.HandlerFunc {
 
 func (mw *User) ApplyFn(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		// If the user is requesting a static asset
+		// we will not need to look up the user in the DB
+		if strings.HasPrefix(path, "/assets/") || 
+		strings.HasPrefix(path, "/images/") {
+			next(w, r)
+			return
+		}
 		// if the user is logged in then pass the user for the navbar
 		cookie, err := r.Cookie("remember_token"); if err != nil {
 			next(w, r)
