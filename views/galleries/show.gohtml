@@ -7,7 +7,8 @@
       <div class="column">
       {{ template "curlGalleryJSON" . }}
       </div>
-      <a target="_blank" href="/galleries/{{.ID}}/edit">Edit Your Gallery</a>
+      <a target="_blank" class="mb-2" href="/galleries/{{.ID}}/edit">Edit Your Gallery</a>
+      <hr/>
       <div class="row">
         {{ range .ImagesSplitN 3 }}
           <div class="col-md-3">

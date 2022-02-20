@@ -83,16 +83,12 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 	var form GalleryForm
 
 	if err := parseForm(r, &form); err != nil {
-		log.Println(err)
 		vd.SetAlert(err)
 		g.New.Render(w, r, vd)
 		return
 	}
 	user := context.User(r.Context())
-	if user == nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
+	
 	gallery := models.Gallery{
 		Title: form.Title,
 		UserId: user.ID,
@@ -106,8 +102,7 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 	// the correct gallery given a valid ID
 	url, err := g.r.Get(EditGallery).URL("id", fmt.Sprintf("%v", gallery.ID))
 	if err != nil {
-		// TODO make this go to the index page
-		http.Redirect(w, r, "/", http.StatusFound)
+		http.Redirect(w, r, "/galleries", http.StatusFound)
 		return
 	}
 	http.Redirect(w, r, url.Path, http.StatusFound)
@@ -170,7 +165,6 @@ func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
 	var form GalleryForm
 	vd.Yield = gallery
 	if err := parseForm(r, &form); err != nil {
-		log.Println(err)
 		vd.SetAlert(err)
 		g.EditView.Render(w, r, vd)
 		return
@@ -203,7 +197,6 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	// TODO: parse a multipart form
 	var vd views.Data
 	vd.Yield = gallery
 	err = r.ParseMultipartForm(maxMultipartMemory)
@@ -233,7 +226,9 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 	}
 	images, err := g.is.ByGalleryID(gallery.ID)
 	if err != nil {
-		panic(err)
+		vd.SetAlert(err)
+		g.EditView.Render(w, r, vd)
+		return
 	}
 
 	gallery.Images = images
@@ -249,6 +244,7 @@ func (g *Galleries) galleryByID(w http.ResponseWriter, r *http.Request) (*models
 	idStr := vars["id"]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Invalid gallery ID", http.StatusNotFound)
 		return nil, err
 	}
@@ -258,6 +254,7 @@ func (g *Galleries) galleryByID(w http.ResponseWriter, r *http.Request) (*models
 		case models.ErrNotFound:
 			http.Error(w, "Gallery not found", http.StatusNotFound)
 		default:
+			log.Println(err)
 			http.Error(w, "Whoops! Something went wrong.", http.StatusNotFound)
 		}
 		return nil, err
@@ -297,43 +294,11 @@ func (g *Galleries) ImageDelete(w http.ResponseWriter, r *http.Request) {
 
 	url, err := g.r.Get(EditGallery).URL("id", fmt.Sprintf("%v", gallery.ID))
 	if err != nil {
+		log.Println(err)
 		http.Redirect(w, r, "/galleries", http.StatusFound)
+		return
 	}
 	http.Redirect(w, r, url.Path, http.StatusFound)
-	// TODO: parse a multipart form
-	// var vd views.Data
-	// vd.Yield = gallery
-	// err = r.ParseMultipartForm(maxMultipartMemory)
-	// if err != nil {
-	// 	vd.SetAlert(err)
-	// 	g.EditView.Render(w, r, vd)
-	// 	return
-	// }
-
-	// files := r.MultipartForm.File["images"]
-	// for _, f := range files {
-	// 	file, err := f.Open()
-	// 	if err != nil {
-	// 		vd.SetAlert(err)
-	// 		g.EditView.Render(w, r, vd)
-	// 		return
-	// 	}
-	// 	defer file.Close()
-
-	// 	err = g.is.Create(gallery.ID, file, f.Filename)
-	// 	if err != nil {
-	// 		vd.SetAlert(err)
-	// 		g.EditView.Render(w, r, vd)
-	// 		return
-	// 	}
-
-	// }
-	// images, err := g.is.ByGalleryID(gallery.ID)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Fprintln(w, "Files:", images)
-
 }
 
 func (g *Galleries) GetGalleryJson(w http.ResponseWriter, r *http.Request) {

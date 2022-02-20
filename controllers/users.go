@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/jgsheppa/golang_website/context"
@@ -56,7 +55,6 @@ func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 	var form RegistrationForm
 
 	if err := parseForm(r, &form); err != nil {
-		log.Println(err)
 		vd.SetAlert(err)
 		u.NewView.Render(w, r, vd)
 		return
@@ -90,7 +88,6 @@ func (u *User) Login(w http.ResponseWriter, r *http.Request) {
 	vd := views.Data{}
 	form := LoginForm{}
 	if err := parseForm(r, &form); err != nil {
-		log.Panicln(err)
 		vd.SetAlert(err)
 		u.LoginView.Render(w, r, vd)
 		return

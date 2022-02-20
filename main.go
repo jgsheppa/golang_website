@@ -2,8 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
+	"github.com/alexsasharegan/dotenv"
+	"github.com/getsentry/sentry-go"
 	"github.com/gorilla/mux"
 	"github.com/jgsheppa/golang_website/controllers"
 	"github.com/jgsheppa/golang_website/middleware"
@@ -17,15 +21,35 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 }
 
 
-const (
-	host = "127.0.0.1"
-	port = 5432
-	user = "jamessheppard"
-	dbname = "golang_website"
-	password = "password"
-)
 
 func main() {
+	// Used to load environment vars
+	err := dotenv.Load()
+  if err != nil {
+    log.Fatalf("Error loading .env file: %v", err)
+  }
+
+	sentryDsn := os.Getenv("SENTRY_SDK")
+	// User to log any errors to Sentry
+	err = sentry.Init(sentry.ClientOptions{
+		Dsn: sentryDsn,
+	})
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
+
+	envHost := os.Getenv("HOST")
+	envUser := os.Getenv("DB_USER")
+	envDB := os.Getenv("DB_NAME")
+	envPW := os.Getenv("PASSWORD")
+
+	var (
+		host = envHost
+		port = 5432
+		user = envUser
+		dbname = envDB
+		password = envPW
+	)
 
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", 
 	host, port, user, password, dbname)
