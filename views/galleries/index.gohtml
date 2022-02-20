@@ -29,6 +29,7 @@
           </td>
           <td>
             <form action="/galleries/{{.ID}}/delete" method="POST" style="display: inline;">
+              {{csrfField}}
               <button type="submit" class="btn btn-danger">Delete</button>
             </form>
           </td>

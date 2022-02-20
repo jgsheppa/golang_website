@@ -8,10 +8,12 @@ import (
 
 	"github.com/alexsasharegan/dotenv"
 	"github.com/getsentry/sentry-go"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/jgsheppa/golang_website/controllers"
 	"github.com/jgsheppa/golang_website/middleware"
 	"github.com/jgsheppa/golang_website/models"
+	"github.com/jgsheppa/golang_website/rand"
 )
 
 func notFound(w http.ResponseWriter, r *http.Request) {
@@ -64,6 +66,11 @@ func main() {
 	userController := controllers.NewUser(services.User)
 	galleriesC := controllers.NewGallery(services.Gallery, services.Image, r)
 
+	// TODO: Update to config var
+	isProd := false
+	b, err := rand.Bytes(32)
+	must(err)
+	csrfMw := csrf.Protect(b, csrf.Secure(isProd))
 	// Middleware to protect routes
 	userMw := middleware.User{
 		UserService: services.User,
@@ -74,7 +81,7 @@ func main() {
 
 	r.Handle("/", staticController.Home).Methods("GET")
 	r.Handle("/contact", staticController.Contact).Methods("GET")
-	r.Handle("/about", staticController.About).Methods("GET")
+	// r.Handle("/about", staticController.About).Methods("GET")
 	r.HandleFunc("/register", userController.New).Methods("GET")
 	r.HandleFunc("/register", userController.Create).Methods("POST")
 	r.Handle("/login", userController.LoginView).Methods("GET")
@@ -108,7 +115,7 @@ func main() {
 	// HandlerFunc converts notFound to the correct type
 	r.NotFoundHandler = http.HandlerFunc(notFound)
 	fmt.Println("Starting the development server on port" + port)
-	http.ListenAndServe(":" + port, userMw.Apply(r))
+	http.ListenAndServe(":" + port, csrfMw(userMw.Apply(r)))
 }
 
 func must(err error) {
