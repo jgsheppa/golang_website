@@ -1,6 +1,7 @@
 package models
 
 import (
+	"os"
 	"regexp"
 	"strings"
 
@@ -11,13 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-
-const hmacSecretKey = "secret"
-
-const userPwPepper = "?3o!yM$LmRKmQhDD"
-
-
-// User model which stores user name, email address, 
+// User model which stores user name, email address,
 // password hash, and remember hash in the PSQL database.
 type User struct {
 	gorm.Model
@@ -55,6 +50,9 @@ type UserService interface {
 
 func NewUserService(db *gorm.DB) UserService {
 	ug := &userGorm{db}
+
+	hmacSecretKey := os.Getenv("HMAC_SECRET_KEY")
+
 	hmac := hash.NewHMAC(hmacSecretKey)
 	uv := newUserValidator(ug, hmac)
 	
@@ -223,6 +221,8 @@ func (uv *userValidator) bcryptPassword(user *User) error {
 	if user.Password == "" {
 		return nil
 	}
+	userPwPepper := os.Getenv("PASSWORD_PEPPER")
+
 	pwBytes := []byte(user.Password + userPwPepper)
 	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
 	if err != nil {
@@ -367,6 +367,8 @@ func (us *userService) Authenticate(email, password string) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	userPwPepper := os.Getenv("PASSWORD_PEPPER")
 
 	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password + userPwPepper))
 	if err != nil {

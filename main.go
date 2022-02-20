@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
-	"github.com/alexsasharegan/dotenv"
 	"github.com/getsentry/sentry-go"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
@@ -25,15 +25,8 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 
 
 func main() {
-	envFile, err := os.Stat("./.env")
-	if err == nil {
-		err = dotenv.Load()
-		fmt.Println(".env file found", envFile)
-		if err != nil {
-			log.Fatal("No .env file found")
-		}
+	rand.CheckForEnvFile()
 
-	}
 	// Necessary for Heroku deploy
 	port := os.Getenv("PORT")
 
@@ -43,7 +36,7 @@ func main() {
 
 	sentryDsn := os.Getenv("SENTRY_SDK")
 	// User to log any errors to Sentry
-	err = sentry.Init(sentry.ClientOptions{
+	err := sentry.Init(sentry.ClientOptions{
 		Dsn: sentryDsn,
 	})
 	if err != nil {
@@ -67,7 +60,12 @@ func main() {
 	galleriesC := controllers.NewGallery(services.Gallery, services.Image, r)
 
 	// TODO: Update to config var
-	isProd := false
+	prodEnv := os.Getenv("IS_PROD")
+	isProd, err := strconv.ParseBool(prodEnv)
+	
+	if err != nil {
+			log.Fatal(err)
+	}
 	b, err := rand.Bytes(32)
 	must(err)
 	csrfMw := csrf.Protect(b, csrf.Secure(isProd))
