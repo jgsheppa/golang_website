@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/alexsasharegan/dotenv"
 	"github.com/getsentry/sentry-go"
 	"github.com/gorilla/mux"
 	"github.com/jgsheppa/golang_website/controllers"
@@ -22,16 +23,25 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 
 
 func main() {
+	envFile, err := os.Stat("./.env")
+	if err == nil {
+		err = dotenv.Load()
+		fmt.Println(".env file found", envFile)
+		if err != nil {
+			log.Fatal("No .env file found")
+		}
+
+	}
 	// Necessary for Heroku deploy
 	port := os.Getenv("PORT")
 
 	if port == "" {
-			log.Fatal("$PORT must be set")
+		log.Fatal("$PORT must be set")
 	}
 
 	sentryDsn := os.Getenv("SENTRY_SDK")
 	// User to log any errors to Sentry
-	err := sentry.Init(sentry.ClientOptions{
+	err = sentry.Init(sentry.ClientOptions{
 		Dsn: sentryDsn,
 	})
 	if err != nil {
@@ -97,7 +107,7 @@ func main() {
 
 	// HandlerFunc converts notFound to the correct type
 	r.NotFoundHandler = http.HandlerFunc(notFound)
-	fmt.Println("Starting the development server on port 3000...")
+	fmt.Println("Starting the development server on port" + port)
 	http.ListenAndServe(":" + port, userMw.Apply(r))
 }
 
