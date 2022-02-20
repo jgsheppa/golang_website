@@ -98,7 +98,7 @@ func main() {
 	// HandlerFunc converts notFound to the correct type
 	r.NotFoundHandler = http.HandlerFunc(notFound)
 	fmt.Println("Starting the development server on port 3000...")
-	http.ListenAndServe(":3000", userMw.Apply(r))
+	http.ListenAndServe(port, userMw.Apply(r))
 }
 
 func must(err error) {
