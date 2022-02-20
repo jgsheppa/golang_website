@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jgsheppa/golang_website/context"
+	"github.com/jgsheppa/golang_website/email"
 	"github.com/jgsheppa/golang_website/models"
 	"github.com/jgsheppa/golang_website/rand"
 	"github.com/jgsheppa/golang_website/views"
@@ -76,6 +77,8 @@ func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusNotFound)
 		return 
 	}
+	email.SendWelcomeEmail()
+	
 	http.Redirect(w, r, "/galleries/new", http.StatusFound)
 }
 
