@@ -90,6 +90,10 @@ func main() {
 	// Image routes
 	imageHandler := http.FileServer(http.Dir("./images"))
 	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", imageHandler))
+
+	// Assets
+	assetHandler := http.FileServer(http.Dir("./assets/"))
+	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", assetHandler))
 	
 	// Gallery Views
 	r.Handle("/galleries", requiredUserMW.ApplyFn(galleriesC.Index)).Methods("GET")
