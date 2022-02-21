@@ -78,7 +78,7 @@ func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 		return 
 	}
 	email.SendWelcomeEmail()
-	
+
 	http.Redirect(w, r, "/galleries/new", http.StatusFound)
 }
 

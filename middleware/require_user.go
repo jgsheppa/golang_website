@@ -68,3 +68,25 @@ func (mw *RequireUser) ApplyFn(next http.HandlerFunc) http.HandlerFunc {
 func (mw *RequireUser) Apply(next http.Handler) http.HandlerFunc {
 	return mw.ApplyFn(next.ServeHTTP)
 }
+
+type NoUser struct {
+	User
+}
+
+// If there already is a user, redirect to galleries page 
+func (mw *NoUser) ApplyFn(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := context.User(r.Context())
+		if user != nil {
+			http.Redirect(w, r, "/galleries", http.StatusFound)
+			return
+		}
+		next(w,r)
+	})
+}
+
+// Assumes that user has already been run, 
+// otherwise it will not work correctly
+func (mw *NoUser) Apply(next http.Handler) http.HandlerFunc {
+	return  mw.ApplyFn(next.ServeHTTP)
+}

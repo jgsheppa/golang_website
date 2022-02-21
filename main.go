@@ -77,13 +77,17 @@ func main() {
 		User: userMw,
 	}
 
-	r.Handle("/", staticController.Home).Methods("GET")
+	noUserMW := middleware.NoUser{
+		User: userMw,
+	}
+
+	r.HandleFunc("/", staticController.Home).Methods("GET")
 	r.Handle("/contact", staticController.Contact).Methods("GET")
 	// r.Handle("/about", staticController.About).Methods("GET")
 	r.HandleFunc("/register", userController.New).Methods("GET")
 	r.HandleFunc("/register", userController.Create).Methods("POST")
-	r.Handle("/login", userController.LoginView).Methods("GET")
-	r.HandleFunc("/login", userController.Login).Methods("POST")
+	r.Handle("/login", noUserMW.Apply(userController.LoginView)).Methods("GET")
+	r.HandleFunc("/login", noUserMW.ApplyFn(userController.Login)).Methods("POST")
 
 	// JSON Routes
 	r.HandleFunc("/me", requiredUserMW.ApplyFn(userController.GetUserJson)).Methods("GET")
@@ -104,7 +108,7 @@ func main() {
 	r.HandleFunc("/galleries/{id:[0-9]+}/edit", requiredUserMW.ApplyFn(galleriesC.Edit)).Methods("GET").Name(controllers.EditGallery)
 	r.HandleFunc("/galleries/{id:[0-9]+}/update", requiredUserMW.ApplyFn(galleriesC.Update)).Methods("POST")
 	r.HandleFunc("/galleries/{id:[0-9]+}/images", requiredUserMW.ApplyFn(galleriesC.ImageUpload)).Methods("POST")
-	r.HandleFunc("/galleries/{id:[0-9]+}/images", requiredUserMW.ApplyFn(galleriesC.ImageUpload)).Methods("POST")
+	r.HandleFunc("/galleries/{id:[0-9]+}/delete", requiredUserMW.ApplyFn(galleriesC.Delete)).Methods("POST")
 	r.HandleFunc("/galleries/{id:[0-9]+}/images/{filename}/delete", requiredUserMW.ApplyFn(galleriesC.ImageDelete)).Methods("POST")
 	r.HandleFunc("/galleries/{id:[0-9]+}", galleriesC.Show).Methods("GET").Name(controllers.ShowGallery)
 	r.Handle("/dashboard", requiredUserMW.Apply(userController.DashboardView)).Methods("GET")
