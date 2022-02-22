@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/jgsheppa/golang_website/controllers"
+	"github.com/jgsheppa/golang_website/email"
 	"github.com/jgsheppa/golang_website/middleware"
 	"github.com/jgsheppa/golang_website/models"
 	"github.com/jgsheppa/golang_website/rand"
@@ -53,10 +54,18 @@ func main() {
 
 	// services.DestructiveReset()
 	services.AutoMigrate()
+
+	domain := os.Getenv("MAILGUN_DOMAIN")
+	apiKey := os.Getenv("MAILGUN_PRIVATE_KEY")
+
+	emailer := email.NewClient(
+		email.WithSender("Schnup Support", "jgsheppard92@gmail.com"),
+		email.WithMailgun(domain, apiKey),
+	)
 	
 	r := mux.NewRouter()
 	staticController := controllers.NewStatic()
-	userController := controllers.NewUser(services.User)
+	userController := controllers.NewUser(services.User, emailer)
 	galleriesC := controllers.NewGallery(services.Gallery, services.Image, r)
 
 	// TODO: Update to config var

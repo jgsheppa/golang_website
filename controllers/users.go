@@ -15,12 +15,13 @@ import (
 // User to create a new Users controller
 // This function will panic if the templates
 // are parsed incorrectly
-func NewUser(us models.UserService) *User {
+func NewUser(us models.UserService, emailer *email.Client) *User {
 	return &User{
 		NewView: views.NewView("bootstrap", "users/new"),
 		LoginView: views.NewView("bootstrap", "users/login"),
 		DashboardView: views.NewView("bootstrap", "users/dashboard"),
 		us: us,
+		emailer: emailer,
 	}
 }
 
@@ -29,6 +30,7 @@ type User struct {
 	LoginView *views.View
 	DashboardView *views.View
 	us models.UserService
+	emailer *email.Client
 }
 
 // Used to render the /register HTML form
@@ -72,12 +74,15 @@ func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 		u.NewView.Render(w, r, vd)
 		return
 	}
+
+	// TODO use real user emails once I am done testing with Mailgun sandbox
+	u.emailer.Welcome(user.Name, "jgsheppard92@gmail.com")
+
 	err := u.signIn(w, &user)
 	if err != nil {
 		http.Redirect(w, r, "/login", http.StatusNotFound)
 		return 
 	}
-	email.SendWelcomeEmail()
 
 	http.Redirect(w, r, "/galleries/new", http.StatusFound)
 }
