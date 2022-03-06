@@ -19,6 +19,7 @@
       </ul>
     </div>
       {{ if .User }}
+        <a class="nav-link" href="/profile">{{ .User.Email }}</a>
         {{ template "logoutForm" }}
       {{ else }}
         <a class="nav-link" href="/register">Register</a>

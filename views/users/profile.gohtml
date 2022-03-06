@@ -1,0 +1,23 @@
+{{define "yield" }}
+  <div class="row">
+    <div class="col-md-4 col-md-offset-4">
+      <div class="panel panel-primary">
+        <div class="panel-heading ">Your Profile</div>
+        <div class="panel-body ">
+          {{template "profile" .}}
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+{{end}}
+
+{{define "profile"}}
+  <p>{{ .Name }}</p>
+  <p>{{ .Email }}</p>
+  <button class="btn btn-default">Reset Password</button>
+  <form action="/profile/delete" method="POST" class="form-horizontal">
+     {{csrfField}}
+    <button type="submit" class="btn btn-danger">Delete Account</button>
+  </form>
+{{end}}

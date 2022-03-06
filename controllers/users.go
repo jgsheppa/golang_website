@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -19,7 +20,7 @@ func NewUser(us models.UserService, emailer *email.Client) *User {
 	return &User{
 		NewView: views.NewView("bootstrap", "users/new"),
 		LoginView: views.NewView("bootstrap", "users/login"),
-		DashboardView: views.NewView("bootstrap", "users/dashboard"),
+		ProfileView: views.NewView("bootstrap", "users/profile"),
 		us: us,
 		emailer: emailer,
 	}
@@ -28,7 +29,7 @@ func NewUser(us models.UserService, emailer *email.Client) *User {
 type User struct {
 	NewView *views.View
 	LoginView *views.View
-	DashboardView *views.View
+	ProfileView *views.View
 	us models.UserService
 	emailer *email.Client
 }
@@ -37,11 +38,6 @@ type User struct {
 //
 // GET /register
 func (u *User) New(w http.ResponseWriter, r *http.Request) {
-	u.NewView.Render(w, r, nil)
-}
-
-// GET /dashboard and pass in user data
-func (u *User) Dashboard(w http.ResponseWriter, r *http.Request) {
 	u.NewView.Render(w, r, nil)
 }
 
@@ -189,4 +185,37 @@ func (u *User) GetUserJson(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(json)
+}
+
+// GET /profile
+func (u *User) Profile(w http.ResponseWriter, r *http.Request) {
+	user := context.User(r.Context())
+	
+	fmt.Println("ZZZZZ", user.ID)
+	var vd views.Data
+	vd.Yield = user
+	u.ProfileView.Render(w, r, vd)
+}
+
+// DELETE /profile
+func (u *User) ProfileDelete(w http.ResponseWriter, r *http.Request) {
+	var vd views.Data
+	user := context.User(r.Context())
+	
+	if err := u.us.Delete(user.ID); err != nil {
+		vd.SetAlert(err)
+		u.NewView.Render(w, r, vd)
+		return
+	}
+
+	cookie := http.Cookie{
+		Name: "remember_token",
+		Value: "",
+		Expires: time.Now(),
+		HttpOnly: true,
+		Secure: true,
+	}
+	http.SetCookie(w, &cookie)
+
+	http.Redirect(w, r, "/login", http.StatusFound)
 }

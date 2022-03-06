@@ -120,7 +120,8 @@ func main() {
 	r.HandleFunc("/galleries/{id:[0-9]+}/delete", requiredUserMW.ApplyFn(galleriesC.Delete)).Methods("POST")
 	r.HandleFunc("/galleries/{id:[0-9]+}/images/{filename}/delete", requiredUserMW.ApplyFn(galleriesC.ImageDelete)).Methods("POST")
 	r.HandleFunc("/galleries/{id:[0-9]+}", galleriesC.Show).Methods("GET").Name(controllers.ShowGallery)
-	r.Handle("/dashboard", requiredUserMW.Apply(userController.DashboardView)).Methods("GET")
+	r.Handle("/profile", requiredUserMW.ApplyFn(userController.Profile)).Methods("GET")
+	r.Handle("/profile/delete", requiredUserMW.ApplyFn(userController.ProfileDelete)).Methods("POST")
 
 	// Logout action
 	r.HandleFunc("/logout", requiredUserMW.ApplyFn(userController.Logout)).Methods("POST")
