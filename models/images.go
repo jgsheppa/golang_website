@@ -16,10 +16,6 @@ type Image struct {
 	URL string
 }
 
-const (
-	host = "http://localhost:3000/"
-)
-
 func (i *Image) Path() string {
 	temp := url.URL{
 		Path: "/" + i.RelativePath(),
@@ -28,6 +24,7 @@ func (i *Image) Path() string {
 }
 
 func (i *Image) FullPath(id uint, filename string) string {
+	host := os.Getenv("HOST")
 	return host + i.RelativePath()
 }
 

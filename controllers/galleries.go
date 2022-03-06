@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -313,7 +314,8 @@ func (g *Galleries) GetGalleryJson(w http.ResponseWriter, r *http.Request) {
 
 	for image := range gallery.Images {
 		// TODO change host depending on environment
-		gallery.Images[image].URL = "http://localhost:3000/images/galleries/" + strconv.FormatUint(uint64(gallery.Images[image].GalleryID), 10) + "/" + gallery.Images[image].Filename
+		host := os.Getenv("HOST")
+		gallery.Images[image].URL = host + "/images/galleries/" + strconv.FormatUint(uint64(gallery.Images[image].GalleryID), 10) + "/" + gallery.Images[image].Filename
 	}
 
 	json, err := json.Marshal(gallery)
