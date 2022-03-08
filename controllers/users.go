@@ -80,7 +80,11 @@ func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 		return 
 	}
 
-	http.Redirect(w, r, "/galleries/new", http.StatusFound)
+	alert := views.Alert{
+		Level: views.AlertLevelSuccess,
+		Message: "Welcome to Schnup! You've successfully created your account.",
+	}
+	views.RedirectAlert(w, r, "/galleries/new", http.StatusFound, alert)
 }
 
 
