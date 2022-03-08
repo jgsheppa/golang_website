@@ -53,12 +53,10 @@ type Client struct {
 
 func (c *Client) Welcome(toName, toEmail string) error {
 	recipient := buildEmail(toName, toEmail)
-	fmt.Println("FROMMMM", c.from)
 	message := mailgun.NewMessage(c.from, welcomeSubject, welcomeMessage, recipient)
 	message.SetHtml(welcomeHTML)
 
-	res, id, err := c.mg.Send(message)
-	fmt.Println("DOES THIS WORK", res, id, err)
+	_, _, err := c.mg.Send(message)
 	return err
 }
 

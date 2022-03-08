@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -34,18 +33,21 @@ type User struct {
 	emailer *email.Client
 }
 
-// Used to render the /register HTML form
-//
-// GET /register
-func (u *User) New(w http.ResponseWriter, r *http.Request) {
-	u.NewView.Render(w, r, nil)
-}
-
 type RegistrationForm struct {
 	Name string `schema:"name"`
 	Email string `schema:"email"`
 	Password string `schema:"password"`
 }
+
+// Used to render the /register HTML form
+//
+// GET /register
+func (u *User) New(w http.ResponseWriter, r *http.Request) {
+	var form RegistrationForm
+	parseURLParams(r, &form)
+	u.NewView.Render(w, r, form)
+}
+
 
 // Create is used to process the registration form
 //
@@ -53,6 +55,7 @@ type RegistrationForm struct {
 func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 	var vd views.Data
 	var form RegistrationForm
+	vd.Yield = &form
 
 	if err := parseForm(r, &form); err != nil {
 		vd.SetAlert(err)
@@ -195,7 +198,6 @@ func (u *User) GetUserJson(w http.ResponseWriter, r *http.Request) {
 func (u *User) Profile(w http.ResponseWriter, r *http.Request) {
 	user := context.User(r.Context())
 	
-	fmt.Println("ZZZZZ", user.ID)
 	var vd views.Data
 	vd.Yield = user
 	u.ProfileView.Render(w, r, vd)
