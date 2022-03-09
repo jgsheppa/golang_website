@@ -20,6 +20,7 @@ func NewUser(us models.UserService, emailer *email.Client) *User {
 		NewView: views.NewView("bootstrap", "users/new"),
 		LoginView: views.NewView("bootstrap", "users/login"),
 		ProfileView: views.NewView("bootstrap", "users/profile"),
+		AdminView: views.NewView("bootstrap", "admin/index"),
 		us: us,
 		emailer: emailer,
 	}
@@ -29,6 +30,7 @@ type User struct {
 	NewView *views.View
 	LoginView *views.View
 	ProfileView *views.View
+	AdminView *views.View
 	us models.UserService
 	emailer *email.Client
 }
@@ -68,6 +70,7 @@ func (u *User) Create(w http.ResponseWriter, r *http.Request) {
 		Email: form.Email,
 		Password: form.Password,
 	}
+	user.Role = "user"
 	if err := u.us.Create(&user); err != nil {
 		vd.SetAlert(err)
 		u.NewView.Render(w, r, vd)
@@ -122,7 +125,11 @@ func (u *User) Login(w http.ResponseWriter, r *http.Request) {
 		u.LoginView.Render(w, r, vd)
 		return
 	}
-	http.Redirect(w, r, "/galleries", http.StatusFound)
+
+	if user.Role != "admin" {
+		http.Redirect(w, r, "/galleries", http.StatusFound)
+	}
+	http.Redirect(w, r, "/admin", http.StatusFound)
 }
 
 func (u *User) Logout(w http.ResponseWriter, r *http.Request) {
@@ -225,3 +232,4 @@ func (u *User) ProfileDelete(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/login", http.StatusFound)
 }
+

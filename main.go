@@ -55,6 +55,19 @@ func main() {
 	// services.DestructiveReset()
 	services.AutoMigrate()
 
+	emailAddress := os.Getenv("ADMIN_EMAIL")
+	name := os.Getenv("ADMIN_NAME")
+	password := os.Getenv("ADMIN_PW")
+
+	user := models.User{
+		Email: emailAddress,
+		Name: name,
+		Password: password,
+		Role: "admin",
+	}
+
+	services.User.Create(&user)
+
 	domain := os.Getenv("MAILGUN_DOMAIN")
 	apiKey := os.Getenv("MAILGUN_PRIVATE_KEY")
 
@@ -122,6 +135,11 @@ func main() {
 	r.HandleFunc("/galleries/{id:[0-9]+}", galleriesC.Show).Methods("GET").Name(controllers.ShowGallery)
 	r.Handle("/profile", requiredUserMW.ApplyFn(userController.Profile)).Methods("GET")
 	r.Handle("/profile/delete", requiredUserMW.ApplyFn(userController.ProfileDelete)).Methods("POST")
+
+
+	// Admin Views
+	r.Handle("/admin", requiredUserMW.ApplyFn(userController.Admin)).Methods("GET")
+	r.HandleFunc("/admin/user/{id:[0-9]+}/delete", requiredUserMW.ApplyFn(userController.UserDelete)).Methods("POST")
 
 	// Logout action
 	r.HandleFunc("/logout", requiredUserMW.ApplyFn(userController.Logout)).Methods("POST")

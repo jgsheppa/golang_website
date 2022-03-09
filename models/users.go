@@ -22,7 +22,7 @@ type User struct {
 	PasswordHash string `gorm:"not null"`
 	Remember string `gorm:"-"`
 	RememberHash string `gorm:"not null;unique"`
-
+	Role string `gorm:"not null"`
 }
 
 // UserDB is used to interact with the database.
@@ -38,6 +38,7 @@ type UserDB interface {
 	Create(user *User) error
 	Update(user *User) error
 	Delete (id uint) error
+	GetAllUsers() ([]User, error)
 
 }
 
@@ -326,6 +327,16 @@ func (ug *userGorm) ByID(id uint) (*User, error) {
 	db := ug.db.Where("id = ?", id)
 	err := first(db, &user)
 	return &user, err
+}
+
+// Used to get all users for admin page
+func (ug *userGorm) GetAllUsers() ([]User, error) {
+	var user []User
+	err := ug.db.Find(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return user, err
 }
 
 // Will be used to create the provided user

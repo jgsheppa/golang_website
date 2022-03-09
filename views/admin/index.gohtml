@@ -1,0 +1,38 @@
+{{define "yield"}}
+  <div class="row">
+    <div class="col-md-12">
+     <table class="table">
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">E-mail</th>
+          <th scope="col">Name</th>
+          <th scope="col">Role</th>
+          <th scope="col">Delete</th>
+        </tr>
+      </thead>
+      <tbody>
+     {{ range .}}
+        <tr>
+          <th scope="row">{{.ID}}</th>
+          <td>{{.Name}}</td>
+          <td>
+            {{.Email}}
+          </td>
+          <td>
+            {{.Role}}
+          </td>
+          <td>
+            <form action="/admin/user/{{.ID}}/delete" method="POST" style="display: inline;">
+              {{csrfField}}
+              <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+     {{ end }}
+      </tbody>
+    </table>
+    </div>
+  </div>
+ 
+{{end}}
