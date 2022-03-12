@@ -23,10 +23,10 @@ const (
 
 func NewGallery(gs models.GalleryService, is models.ImageService, r *mux.Router) *Galleries {
 	return &Galleries{
-		New: views.NewView("bootstrap", "galleries/new"),
-		ShowView: views.NewView("bootstrap", "galleries/show"),
-		EditView: views.NewView("bootstrap", "galleries/edit"),
-		IndexView: views.NewView("bootstrap", "galleries/index"),
+		New: views.NewView("bootstrap", http.StatusFound, "galleries/new"),
+		ShowView: views.NewView("bootstrap", http.StatusFound, "galleries/show"),
+		EditView: views.NewView("bootstrap", http.StatusFound, "galleries/edit"),
+		IndexView: views.NewView("bootstrap", http.StatusFound, "galleries/index"),
 		gs: gs,
 		is: is,
 		r: r,

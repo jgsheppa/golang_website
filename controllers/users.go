@@ -17,10 +17,10 @@ import (
 // are parsed incorrectly
 func NewUser(us models.UserService, emailer *email.Client) *User {
 	return &User{
-		NewView: views.NewView("bootstrap", "users/new"),
-		LoginView: views.NewView("bootstrap", "users/login"),
-		ProfileView: views.NewView("bootstrap", "users/profile"),
-		AdminView: views.NewView("bootstrap", "admin/index"),
+		NewView: views.NewView("bootstrap", http.StatusFound, "users/new"),
+		LoginView: views.NewView("bootstrap", http.StatusFound, "users/login"),
+		ProfileView: views.NewView("bootstrap", http.StatusFound, "users/profile"),
+		AdminView: views.NewView("bootstrap", http.StatusFound, "admin/index"),
 		us: us,
 		emailer: emailer,
 	}

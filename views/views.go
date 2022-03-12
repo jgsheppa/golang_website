@@ -18,7 +18,7 @@ var (
 	TemplateExt string = ".gohtml"
 )
 
-func NewView(layout string, files ...string) *View {
+func NewView(layout string, status int, files ...string) *View {
 	// Prepend and append file paths with "views"
 	// and ".gohtml"
 	addTemplatePath(files)
@@ -38,12 +38,14 @@ func NewView(layout string, files ...string) *View {
 	return &View{
 		Template: t,
 		Layout: layout,
+		Status: status,
 	}
 }
 
 type View struct {
 	Template *template.Template
 	Layout string
+	Status int
 }
 
 func (v *View) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -52,6 +54,7 @@ func (v *View) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (v *View) Render(w http.ResponseWriter, r *http.Request, data interface{}) {
 	w.Header().Set("Content-Type", "text/html")
+	w.WriteHeader(v.Status)
 	var vd Data
 	switch d := data.(type) {
 	case Data:
@@ -76,7 +79,7 @@ func (v *View) Render(w http.ResponseWriter, r *http.Request, data interface{}) 
 			return csrfField
 		},
 	})
-
+	
 	if err := template.ExecuteTemplate(&buf, v.Layout, vd); err != nil {
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
