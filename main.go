@@ -145,7 +145,7 @@ func main() {
 	r.HandleFunc("/logout", requiredUserMW.ApplyFn(userController.Logout)).Methods("POST")
 
 	// HandlerFunc converts notFound to the correct type
-	r.NotFoundHandler = http.HandlerFunc(notFound)
+	r.NotFoundHandler = staticController.NotFound
 	fmt.Println("Starting the development server on port" + port)
 	http.ListenAndServe(":" + port, csrfMw(userMw.Apply(r)))
 }
