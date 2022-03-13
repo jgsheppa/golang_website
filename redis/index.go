@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -13,7 +14,7 @@ type Client struct {
 
 func NewRedis() (*Client, error) {
 	client := redis.NewClient(&redis.Options{
-		Addr:        "localhost:6379",
+		Addr:        os.Getenv("REDIS_URL"),
 		Password: "",
 		DB:          0,
 		DialTimeout: 100 * time.Millisecond,

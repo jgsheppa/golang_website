@@ -15,7 +15,6 @@ import (
 	"github.com/jgsheppa/golang_website/middleware"
 	"github.com/jgsheppa/golang_website/models"
 	"github.com/jgsheppa/golang_website/rand"
-	"github.com/jgsheppa/golang_website/redis"
 )
 
 func main() {
@@ -38,12 +37,6 @@ func main() {
 	}
 
 	psqlInfo := os.Getenv("DATABASE_URL")
-
-	redis, err := redis.NewRedis()
-	if err != nil {
-		log.Fatalf("Could not initialize Redis client %s", err)
-	}
-	fmt.Println("REDIS", redis)
 
 	// cfg := elasticsearch.Config{
 	// 	Addresses: []string{
