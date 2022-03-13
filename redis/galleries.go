@@ -7,31 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/jgsheppa/golang_website/models"
 )
-
-type Client struct {
-	client *redis.Client
-}
-
-func NewRedis() (*Client, error) {
-	client := redis.NewClient(&redis.Options{
-		Addr:        "localhost:6379",
-		Password: "",
-		DB:          0,
-		DialTimeout: 100 * time.Millisecond,
-		ReadTimeout: 100 * time.Millisecond,
-	})
-
-	if _, err := client.Ping(context.Background()).Result(); err != nil {
-		return nil, err
-	}
-
-	return &Client{
-		client: client,
-	}, nil
-}
 
 func (c *Client) GetGalleryID(ctx context.Context, nconst string) (*models.Gallery, error) {
 	cmd := c.client.Get(ctx, nconst)
