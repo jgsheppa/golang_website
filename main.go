@@ -15,15 +15,8 @@ import (
 	"github.com/jgsheppa/golang_website/middleware"
 	"github.com/jgsheppa/golang_website/models"
 	"github.com/jgsheppa/golang_website/rand"
+	"github.com/jgsheppa/golang_website/redis"
 )
-
-func notFound(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	w.WriteHeader(http.StatusNotFound)
-	fmt.Fprint(w, "<h1>We couldn't find that page!</h1><a href=\"/\">Home</a>")
-}
-
-
 
 func main() {
 	rand.CheckForEnvFile()
@@ -45,6 +38,29 @@ func main() {
 	}
 
 	psqlInfo := os.Getenv("DATABASE_URL")
+
+	redis, err := redis.NewRedis()
+	if err != nil {
+		log.Fatalf("Could not initialize Redis client %s", err)
+	}
+	fmt.Println("REDIS", redis)
+
+	// cfg := elasticsearch.Config{
+	// 	Addresses: []string{
+	// 		"http://localhost:9200",
+	// 		"http://localhost:9201",
+	// 	},
+	// 	Username: "foo",
+  // 	Password: "bar",
+	// }
+	// es, err := elasticsearch.NewClient(cfg)
+	// fmt.Println(es)
+	// if err != nil {
+	// 	log.Fatalf("Error creating the client: %s", err)
+	// }
+	
+
+	
 
 	services, err := models.NewServices(psqlInfo)
 	if err != nil {

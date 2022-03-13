@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jgsheppa/golang_website/context"
 	"github.com/jgsheppa/golang_website/models"
+	"github.com/jgsheppa/golang_website/redis"
 	"github.com/jgsheppa/golang_website/views"
 )
 
@@ -50,19 +51,33 @@ type GalleryForm struct {
 // GET /gallers/:id	
 func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 	var vd views.Data
+	
 	rememberCookie, err := r.Cookie("remember_token")
 	if err != nil {
 		vd.SetAlert(err)
 		return
 	}
 
+	id := mux.Vars(r)["id"]
+	redis, err := redis.NewRedis()
+
+	val, err := redis.GetGalleryID(r.Context(), id)
+	if err == nil {		
+		vd.Yield = val
+		g.ShowView.Render(w, r, vd)
+		return
+	}
+
+	
 	gallery, err := g.galleryByID(w, r)
 	if err != nil {
 		return
 	}
 
 	gallery.UserToken = "remember_token=" + rememberCookie.Value
-
+	
+	_ = redis.SetGalleryID(r.Context(), gallery) 
+	
 	vd.Yield = gallery
 	g.ShowView.Render(w, r, vd)
 }
@@ -307,10 +322,22 @@ func (g *Galleries) ImageDelete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (g *Galleries) GetGalleryJson(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	redis, err := redis.NewRedis()
+
+	val, err := redis.GetGalleryID(r.Context(), id)
+	if err == nil {		
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(val)
+		return
+	}
+
 	gallery, err := g.galleryByID(w, r)
 	if err != nil {
 		return
 	}
+
+	_ = redis.SetGalleryID(r.Context(), gallery) 
 
 	for image := range gallery.Images {
 		// TODO change host depending on environment
