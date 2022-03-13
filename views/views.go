@@ -53,8 +53,9 @@ func (v *View) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (v *View) Render(w http.ResponseWriter, r *http.Request, data interface{}) {
-	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(v.Status)
+	w.Header().Set("Content-Type", "text/html")
+
 	var vd Data
 	switch d := data.(type) {
 	case Data:
