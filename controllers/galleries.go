@@ -60,6 +60,10 @@ func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 
 	id := mux.Vars(r)["id"]
 	redis, err := redis.NewRedis()
+	if err != nil {
+		vd.SetAlert(err)
+		return
+	}
 
 	val, err := redis.GetGalleryID(r.Context(), id)
 	if err == nil {		
