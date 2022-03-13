@@ -13,8 +13,10 @@ type Client struct {
 }
 
 func NewRedis() (*Client, error) {
+	redisURL := os.Getenv("REDIS_URL")
+
 	client := redis.NewClient(&redis.Options{
-		Addr:        os.Getenv("REDIS_URL"),
+		Addr:        redisURL,
 		Password: "",
 		DB:          0,
 		DialTimeout: 100 * time.Millisecond,
