@@ -38,23 +38,8 @@ func main() {
 
 	psqlInfo := os.Getenv("DATABASE_URL")
 
-	// cfg := elasticsearch.Config{
-	// 	Addresses: []string{
-	// 		"http://localhost:9200",
-	// 		"http://localhost:9201",
-	// 	},
-	// 	Username: "foo",
-  // 	Password: "bar",
-	// }
-	// es, err := elasticsearch.NewClient(cfg)
-	// fmt.Println(es)
-	// if err != nil {
-	// 	log.Fatalf("Error creating the client: %s", err)
-	// }
-	
 
 	
-
 	services, err := models.NewServices(psqlInfo)
 	if err != nil {
 	panic(err)
@@ -114,7 +99,6 @@ func main() {
 
 	r.HandleFunc("/", staticController.Home).Methods("GET")
 	r.Handle("/contact", staticController.Contact).Methods("GET")
-	// r.Handle("/about", staticController.About).Methods("GET")
 	r.HandleFunc("/register", userController.New).Methods("GET")
 	r.HandleFunc("/register", userController.Create).Methods("POST")
 	r.Handle("/login", noUserMW.Apply(userController.LoginView)).Methods("GET")

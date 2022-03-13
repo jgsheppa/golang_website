@@ -60,6 +60,7 @@ func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 
 	id := mux.Vars(r)["id"]
 	redis, err := redis.NewRedis()
+	
 	if err != nil {
 		vd.SetAlert(err)
 		return
@@ -328,6 +329,9 @@ func (g *Galleries) ImageDelete(w http.ResponseWriter, r *http.Request) {
 func (g *Galleries) GetGalleryJson(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	redis, err := redis.NewRedis()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 
 	val, err := redis.GetGalleryID(r.Context(), id)
 	if err == nil {		

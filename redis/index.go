@@ -2,8 +2,8 @@ package redis
 
 import (
 	"context"
+	"log"
 	"os"
-	"time"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -14,13 +14,12 @@ type Client struct {
 
 func NewRedis() (*Client, error) {
 	redisURL := os.Getenv("REDIS_URL")
+	opt, err := redis.ParseURL(redisURL)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	client := redis.NewClient(&redis.Options{
-		Addr:        redisURL,
-		DB:          0,
-		DialTimeout: 100 * time.Millisecond,
-		ReadTimeout: 100 * time.Millisecond,
-	})
+	client := redis.NewClient(opt)
 
 	if _, err := client.Ping(context.Background()).Result(); err != nil {
 		return nil, err
