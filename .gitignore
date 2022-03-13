@@ -3,3 +3,6 @@ exp
 images/**
 
 .env
+
+go.sum
+golang_website
