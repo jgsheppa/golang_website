@@ -10,13 +10,13 @@ services:
       POSTGRES_DB: golang_website
     ports:
       - '5432:5432'
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.1.0
-    ports:
-      - '9200:9200'
-      - '9300:9300'
-    environment:
-      - discovery.type=single-node
+#  elasticsearch:
+#    image: docker.elastic.co/elasticsearch/elasticsearch:8.1.0
+#    ports:
+#      - '9200:9200'
+#      - '9300:9300'
+#    environment:
+#      - discovery.type=single-node
   adminer:
     image: adminer
     restart: always
@@ -24,7 +24,7 @@ services:
       ADMINER_DESIGN: dracula
     ports:
       - 3333:8080
-  redis:
-    image: 'redis:7.0-rc2-alpine'
-    ports:
-      - '6379:6379'
+#  redis:
+#    image: 'redis:7.0-rc2-alpine'
+#    ports:
+#      - '6379:6379'

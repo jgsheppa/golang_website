@@ -38,11 +38,9 @@ func main() {
 
 	psqlInfo := os.Getenv("DATABASE_URL")
 
-
-	
 	services, err := models.NewServices(psqlInfo)
 	if err != nil {
-	panic(err)
+		panic(err)
 	}
 	must(err)
 
@@ -54,10 +52,10 @@ func main() {
 	password := os.Getenv("ADMIN_PW")
 
 	user := models.User{
-		Email: emailAddress,
-		Name: name,
+		Email:    emailAddress,
+		Name:     name,
 		Password: password,
-		Role: "admin",
+		Role:     "admin",
 	}
 
 	services.User.Create(&user)
@@ -69,7 +67,7 @@ func main() {
 		email.WithSender("Schnup Support", "jgsheppard92@gmail.com"),
 		email.WithMailgun(domain, apiKey),
 	)
-	
+
 	r := mux.NewRouter()
 	staticController := controllers.NewStatic()
 	userController := controllers.NewUser(services.User, emailer)
@@ -80,7 +78,7 @@ func main() {
 	isProd, err := strconv.ParseBool(prodEnv)
 
 	if err != nil {
-			log.Fatal(err)
+		log.Fatal(err)
 	}
 	b, err := rand.Bytes(32)
 	must(err)
@@ -107,15 +105,15 @@ func main() {
 	// JSON Routes
 	r.HandleFunc("/me", requiredUserMW.ApplyFn(userController.GetUserJson)).Methods("GET")
 	r.HandleFunc("/me/galleries/{id:[0-9]+}", requiredUserMW.ApplyFn(galleriesC.GetGalleryJson)).Methods("GET")
-	
+
 	// Image routes
 	imageHandler := http.FileServer(http.Dir("./images"))
 	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", imageHandler))
 
-	// Assets	
+	// Assets
 	assetHandler := http.FileServer(http.Dir("./assets/"))
 	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", assetHandler))
-	
+
 	// Gallery Views
 	r.Handle("/galleries", requiredUserMW.ApplyFn(galleriesC.Index)).Methods("GET")
 	r.Handle("/galleries/new", requiredUserMW.Apply(galleriesC.New)).Methods("GET")
@@ -129,7 +127,6 @@ func main() {
 	r.Handle("/profile", requiredUserMW.ApplyFn(userController.Profile)).Methods("GET")
 	r.Handle("/profile/delete", requiredUserMW.ApplyFn(userController.ProfileDelete)).Methods("POST")
 
-
 	// Admin Views
 	r.Handle("/admin", requiredUserMW.ApplyFn(userController.Admin)).Methods("GET")
 	r.HandleFunc("/admin/user/{id:[0-9]+}/delete", requiredUserMW.ApplyFn(userController.UserDelete)).Methods("POST")
@@ -140,7 +137,7 @@ func main() {
 	// HandlerFunc converts notFound to the correct type
 	r.NotFoundHandler = staticController.NotFound
 	fmt.Println("Starting the development server on port" + port)
-	http.ListenAndServe(":" + port, csrfMw(userMw.Apply(r)))
+	http.ListenAndServe(":"+port, csrfMw(userMw.Apply(r)))
 }
 
 func must(err error) {
